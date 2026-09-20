@@ -1,5 +1,7 @@
 # AGUI Harness
 
+**简体中文** | [English](README.en.md)
+
 把业务 Agent + 组件式生成界面的架构模式，转化为 Coding Agent 可以执行、检查和接续的开发工具包。包含 Markdown 规范、5 个 Skills、JSON Schema、本地证据门禁，以及非电商的可运行工单和UI交互示例。
 
 **这是开发设计与验证工具，不是替代业务系统的 Agent 运行框架。** 能验证已声明的控制和测试证据，不能仅靠文档/门禁保证模型正确或生产效率。本包的 AGUI 指应用设计模式；[AG-UI](https://docs.ag-ui.com/introduction) 是可选事件传输协议，尚未附带官方兼容 adapter。
