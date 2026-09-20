@@ -1,0 +1,258 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "meeting-equipment-component",
+  "type": "object",
+  "properties": {
+    "component": {
+      "const": "booking_confirmation"
+    },
+    "presentation_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "proposal": {
+      "type": "object",
+      "properties": {
+        "proposal_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "payload_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "owner_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "equipment_revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "policy_revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "slot": {
+          "type": "object",
+          "properties": {
+            "equipment_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "start_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "end_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "timezone": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            }
+          },
+          "required": [
+            "equipment_id",
+            "start_at",
+            "end_at",
+            "timezone"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "proposal_id",
+        "revision",
+        "payload_hash",
+        "expires_at",
+        "owner_id",
+        "equipment_revision",
+        "policy_revision",
+        "slot"
+      ],
+      "additionalProperties": false
+    },
+    "operation": {
+      "type": "object",
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "status": {
+          "enum": [
+            "approved",
+            "executing",
+            "committed",
+            "failed",
+            "unknown",
+            "expired"
+          ]
+        },
+        "receipt": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "booking"
+            },
+            "operation_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "reservation_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "equipment_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "owner_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "tenant_ref": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "start_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "end_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "timezone": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "committed_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "authority_ref": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          "required": [
+            "kind",
+            "operation_id",
+            "reservation_id",
+            "equipment_id",
+            "owner_id",
+            "tenant_ref",
+            "start_at",
+            "end_at",
+            "timezone",
+            "committed_at",
+            "authority_ref"
+          ],
+          "additionalProperties": false
+        },
+        "reason_code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        }
+      },
+      "required": [
+        "operation_id",
+        "revision",
+        "status"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "committed"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "receipt"
+            ],
+            "not": {
+              "required": [
+                "reason_code"
+              ]
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "receipt"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "failed",
+                  "expired"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "reason_code"
+            ]
+          }
+        }
+      ]
+    },
+    "explanation": {
+      "type": "string",
+      "maxLength": 1000
+    }
+  },
+  "required": [
+    "component",
+    "presentation_id",
+    "revision",
+    "proposal",
+    "explanation"
+  ],
+  "additionalProperties": false
+}

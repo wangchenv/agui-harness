@@ -1,0 +1,402 @@
+{
+  "schema_version": 1,
+  "status": "draft",
+  "project": {
+    "id": "new-application",
+    "domain": "明确业务边界后替换",
+    "scope": "application"
+  },
+  "source_paths": [
+    "."
+  ],
+  "features": {
+    "writes": true,
+    "sessions": true,
+    "memory": false,
+    "ui": true,
+    "external_writes": false
+  },
+  "design": {
+    "architecture": ".agui/design/architecture.md",
+    "data": ".agui/design/data.md",
+    "workflows": ".agui/design/workflows.md",
+    "interaction": ".agui/design/interaction.md",
+    "operations": ".agui/design/operations.md",
+    "evaluation": ".agui/design/evaluation.md"
+  },
+  "entities": [
+    {
+      "name": "resource",
+      "authority": "替换为实际业务后端",
+      "id_field": "resource_id",
+      "tenant_field": "tenant_id",
+      "version_field": "version",
+      "freshness": "在提案读取与提交时校验版本；报价按业务TTL"
+    }
+  ],
+  "tools": [
+    {
+      "name": "read_resource",
+      "kind": "read",
+      "input_schema": ".agui/schemas/read-input.json",
+      "output_schema": ".agui/schemas/read-output.json",
+      "permission": "resource:read",
+      "identity_source": "host",
+      "risk": "R0",
+      "timeout_ms": 5000,
+      "max_concurrency": 4,
+      "idempotency": "none",
+      "approval": "none",
+      "precondition": "none",
+      "receipt": false
+    },
+    {
+      "name": "apply_change",
+      "kind": "write",
+      "input_schema": ".agui/schemas/write-input.json",
+      "output_schema": ".agui/schemas/write-output.json",
+      "permission": "resource:update",
+      "identity_source": "host",
+      "risk": "R2",
+      "timeout_ms": 5000,
+      "max_concurrency": 1,
+      "idempotency": "required",
+      "approval": "explicit",
+      "precondition": "entity_version",
+      "receipt": true
+    }
+  ],
+  "workflows": [
+    {
+      "id": "change_resource",
+      "initial": "proposed",
+      "states": [
+        "proposed",
+        "approved",
+        "executing",
+        "committed",
+        "failed",
+        "unknown"
+      ],
+      "terminals": [
+        "committed",
+        "failed"
+      ],
+      "transitions": [
+        {
+          "from": "proposed",
+          "to": "approved",
+          "guard": "宿主核实操作者与准确提案摘要"
+        },
+        {
+          "from": "approved",
+          "to": "executing",
+          "guard": "权限/版本/有效期原子检查"
+        },
+        {
+          "from": "executing",
+          "to": "committed",
+          "guard": "权威业务凭证"
+        },
+        {
+          "from": "executing",
+          "to": "failed",
+          "guard": "确定未提交"
+        },
+        {
+          "from": "executing",
+          "to": "unknown",
+          "guard": "无法确定远端结果"
+        },
+        {
+          "from": "unknown",
+          "to": "committed",
+          "guard": "查询或对账得到成功凭证"
+        },
+        {
+          "from": "unknown",
+          "to": "failed",
+          "guard": "对账证明未产生效果"
+        }
+      ],
+      "write_tools": [
+        "apply_change"
+      ],
+      "unknown_resolution": "按operation_id查后端结果；不可盲目重试不幂等外部写"
+    }
+  ],
+  "components": [
+    {
+      "name": "change_preview",
+      "schema": ".agui/schemas/component.json",
+      "critical_fields": {
+        "before": "evidence",
+        "after": "evidence",
+        "outcome": "receipt"
+      },
+      "allows_partial": true,
+      "partial_actions": false,
+      "final_requires": "validated_event",
+      "action_tools": [
+        "apply_change"
+      ]
+    }
+  ],
+  "budgets": {
+    "turn_timeout_ms": 30000,
+    "max_tool_calls": 12,
+    "max_parallel_tools": 4,
+    "max_input_bytes": 64000,
+    "max_output_tokens": 4000,
+    "max_cost_microunits": 1000000
+  },
+  "controls": {
+    "H01": {
+      "applicability": "required",
+      "reason": "身份权限与租户隔离；按本项目功能与风险确认",
+      "implementation": [
+        "src/adapter.py"
+      ],
+      "cases": [
+        "tenant_isolation",
+        "unauthorized_write"
+      ]
+    },
+    "H02": {
+      "applicability": "required",
+      "reason": "业务操作幂等；按本项目功能与风险确认",
+      "implementation": [
+        "src/adapter.py"
+      ],
+      "cases": [
+        "duplicate_commit",
+        "changed_payload",
+        "concurrent_duplicate"
+      ]
+    },
+    "H03": {
+      "applicability": "required",
+      "reason": "提案版本与批准；按本项目功能与风险确认",
+      "implementation": [
+        "src/adapter.py"
+      ],
+      "cases": [
+        "stale_proposal",
+        "unapproved_proposal"
+      ]
+    },
+    "H04": {
+      "applicability": "required",
+      "reason": "提交一致性与结果对账；按本项目功能与风险确认",
+      "implementation": [
+        "src/adapter.py"
+      ],
+      "cases": [
+        "rollback_gap",
+        "lost_response"
+      ]
+    },
+    "H05": {
+      "applicability": "required",
+      "reason": "会话并发与撤销；按本项目功能与风险确认",
+      "implementation": [
+        "src/adapter.py"
+      ],
+      "cases": [
+        "session_conflict",
+        "session_revocation"
+      ]
+    },
+    "H06": {
+      "applicability": "required",
+      "reason": "UI 终态与业务凭证；按本项目功能与风险确认",
+      "implementation": [
+        "src/adapter.py"
+      ],
+      "cases": [
+        "partial_disconnect",
+        "receipt_required",
+        "responsive_layout",
+        "keyboard_navigation",
+        "ui_state_recovery"
+      ]
+    },
+    "H07": {
+      "applicability": "required",
+      "reason": "事实来源与新鲜度；按本项目功能与风险确认",
+      "implementation": [
+        "src/adapter.py"
+      ],
+      "cases": [
+        "stale_evidence"
+      ]
+    },
+    "H08": {
+      "applicability": "not_applicable",
+      "reason": "记忆顺序与删除；按本项目功能与风险确认",
+      "implementation": [],
+      "cases": []
+    },
+    "H09": {
+      "applicability": "required",
+      "reason": "时间并发费用预算；按本项目功能与风险确认",
+      "implementation": [
+        "src/adapter.py"
+      ],
+      "cases": [
+        "tool_deadline",
+        "concurrency_budget"
+      ]
+    },
+    "H10": {
+      "applicability": "required",
+      "reason": "用户意图与错误模型边界；按本项目功能与风险确认",
+      "implementation": [
+        "src/adapter.py"
+      ],
+      "cases": [
+        "denied_intent",
+        "false_success"
+      ]
+    },
+    "H11": {
+      "applicability": "required",
+      "reason": "真实任务质量与效率；按本项目功能与风险确认",
+      "implementation": [
+        "src/adapter.py"
+      ],
+      "cases": [
+        "task_quality",
+        "operator_efficiency"
+      ]
+    },
+    "H12": {
+      "applicability": "required",
+      "reason": "观测与降级；按本项目功能与风险确认",
+      "implementation": [
+        "src/adapter.py"
+      ],
+      "cases": [
+        "audit_trace",
+        "degraded_mode"
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "faults",
+      "kind": "deterministic",
+      "command": [
+        "{python}",
+        "tests/agui_faults.py"
+      ],
+      "timeout_s": 300,
+      "cases": [
+        "tenant_isolation",
+        "unauthorized_write",
+        "duplicate_commit",
+        "changed_payload",
+        "concurrent_duplicate",
+        "stale_proposal",
+        "unapproved_proposal",
+        "rollback_gap",
+        "lost_response",
+        "session_conflict",
+        "session_revocation",
+        "partial_disconnect",
+        "receipt_required",
+        "stale_evidence",
+        "tool_deadline",
+        "concurrency_budget",
+        "denied_intent",
+        "false_success",
+        "audit_trace",
+        "degraded_mode"
+      ],
+      "inputs": [
+        "tests/agui_faults.py"
+      ]
+    },
+    {
+      "id": "quality",
+      "kind": "model_eval",
+      "command": [
+        "{python}",
+        "tests/agui_quality.py"
+      ],
+      "timeout_s": 300,
+      "cases": [
+        "task_quality",
+        "operator_efficiency"
+      ],
+      "inputs": [
+        "tests/agui_quality.py"
+      ]
+    },
+    {
+      "id": "load",
+      "kind": "load",
+      "command": [
+        "{python}",
+        "tests/agui_load.py"
+      ],
+      "timeout_s": 300,
+      "cases": [
+        "latency_budget"
+      ],
+      "inputs": [
+        "tests/agui_load.py"
+      ]
+    },
+    {
+      "id": "recovery",
+      "kind": "recovery",
+      "command": [
+        "{python}",
+        "tests/agui_recovery.py"
+      ],
+      "timeout_s": 300,
+      "cases": [
+        "restart_recovery"
+      ],
+      "inputs": [
+        "tests/agui_recovery.py"
+      ]
+    },
+    {
+      "id": "ui",
+      "kind": "ui",
+      "command": [
+        "{python}",
+        "tests/agui_ui.py"
+      ],
+      "inputs": [
+        "tests/agui_ui.py"
+      ],
+      "timeout_s": 120,
+      "cases": [
+        "responsive_layout",
+        "keyboard_navigation",
+        "ui_state_recovery"
+      ]
+    }
+  ],
+  "release": {
+    "minimum_samples": 100,
+    "task_success_min": 0.95,
+    "human_time_reduction_min": 0.2,
+    "rework_delta_max": 0,
+    "p95_latency_ms_max": 15000,
+    "cost_per_success_max": 1.0,
+    "evidence_max_age_hours": 24,
+    "baseline": "baseline-v1-to-calibrate",
+    "model_version": "select-real-model-version",
+    "dataset_id": "dataset-v1-to-create"
+  },
+  "ui_design": {
+    "spec": ".agui/design/DESIGN.md",
+    "tokens": ".agui/tokens.json",
+    "inventory": ".agui/component-inventory.json",
+    "prototype": "prototype/index.html"
+  }
+}

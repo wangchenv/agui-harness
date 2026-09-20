@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "meeting-equipment-results-component",
+  "type": "object",
+  "properties": {
+    "component": {
+      "const": "equipment_results"
+    },
+    "presentation_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "evidence_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "start_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "end_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "timezone": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "properties": {
+              "equipment_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "equipment_revision": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "site_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "location": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "category": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "available": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "equipment_id",
+              "equipment_revision",
+              "name",
+              "site_id",
+              "location",
+              "category",
+              "available"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "evidence_id",
+        "observed_at",
+        "expires_at",
+        "start_at",
+        "end_at",
+        "timezone",
+        "items"
+      ],
+      "additionalProperties": false
+    },
+    "explanation": {
+      "type": "string",
+      "maxLength": 1000
+    }
+  },
+  "required": [
+    "component",
+    "presentation_id",
+    "revision",
+    "evidence",
+    "explanation"
+  ],
+  "additionalProperties": false
+}

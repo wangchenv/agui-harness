@@ -1,0 +1,635 @@
+{
+  "schema_version": 1,
+  "status": "ready",
+  "project": {
+    "id": "meeting-equipment",
+    "domain": "企业共享会议设备预约：员工查询与提交预约，管理员处理冲突，复用现有原子时间段占用后端",
+    "scope": "application"
+  },
+  "source_paths": [
+    "src",
+    "tests",
+    ".agui/design",
+    ".agui/schemas",
+    "DESIGN.md",
+    "ui",
+    "prototype"
+  ],
+  "features": {
+    "writes": true,
+    "sessions": true,
+    "memory": false,
+    "ui": true,
+    "external_writes": true
+  },
+  "design": {
+    "architecture": ".agui/design/architecture.md",
+    "data": ".agui/design/data.md",
+    "workflows": ".agui/design/workflows.md",
+    "interaction": ".agui/design/interaction.md",
+    "operations": ".agui/design/operations.md",
+    "evaluation": ".agui/design/evaluation.md"
+  },
+  "entities": [
+    {
+      "name": "equipment",
+      "authority": "企业设备目录（待对接）",
+      "id_field": "equipment_id",
+      "tenant_field": "tenant_id",
+      "version_field": "equipment_revision",
+      "freshness": "元数据60秒；提交前条件校验启用状态/规则版本；版本接口待证实"
+    },
+    {
+      "name": "reservation",
+      "authority": "现有原子时间段占用后端；幂等/查询/修订接口待核实",
+      "id_field": "reservation_id",
+      "tenant_field": "tenant_id",
+      "version_field": "revision",
+      "freshness": "可用性15秒仅供提案，提交以原子占用结果为准；成功来自后端receipt"
+    },
+    {
+      "name": "conflict_case",
+      "authority": "应用关系数据库",
+      "id_field": "case_id",
+      "tenant_field": "tenant_id",
+      "version_field": "revision",
+      "freshness": "管理员提交决定时CAS；建议不表示设备已占用"
+    },
+    {
+      "name": "operation",
+      "authority": "应用执行账本+后端对账",
+      "id_field": "operation_id",
+      "tenant_field": "tenant_id",
+      "version_field": "revision",
+      "freshness": "响应丢失保留unknown，直到权威查询确认；不可凭缓存判未提交"
+    }
+  ],
+  "tools": [
+    {
+      "name": "find_equipment",
+      "kind": "read",
+      "input_schema": ".agui/schemas/read-input.json",
+      "output_schema": ".agui/schemas/read-output.json",
+      "permission": "equipment:read within tenant and permitted sites",
+      "identity_source": "host",
+      "risk": "R0",
+      "timeout_ms": 3000,
+      "max_concurrency": 2,
+      "idempotency": "none",
+      "approval": "none",
+      "precondition": "none",
+      "receipt": false
+    },
+    {
+      "name": "prepare_booking_proposal",
+      "kind": "propose",
+      "input_schema": ".agui/schemas/proposal-input.json",
+      "output_schema": ".agui/schemas/proposal-output.json",
+      "permission": "booking:propose for authenticated self",
+      "identity_source": "host",
+      "risk": "R0",
+      "timeout_ms": 3000,
+      "max_concurrency": 2,
+      "idempotency": "none",
+      "approval": "none",
+      "precondition": "none",
+      "receipt": false
+    },
+    {
+      "name": "submit_equipment_booking",
+      "kind": "write",
+      "input_schema": ".agui/schemas/write-input.json",
+      "output_schema": ".agui/schemas/write-output.json",
+      "permission": "booking:create for authenticated self",
+      "identity_source": "host",
+      "risk": "R2",
+      "timeout_ms": 5000,
+      "max_concurrency": 1,
+      "idempotency": "required",
+      "approval": "explicit",
+      "precondition": "atomic_predicate",
+      "receipt": true,
+      "precondition_detail": "现有预约后端对同一equipment_id的UTC半开区间[start,end)原子判定不重叠并占用；并发相交至多一项成功，明确拒绝映射SLOT_CONFLICT，邻接可共存；不要求全日历version，设备停用/策略检查语义另待接口核实。"
+    },
+    {
+      "name": "get_booking_operation",
+      "kind": "read",
+      "input_schema": ".agui/schemas/operation-input.json",
+      "output_schema": ".agui/schemas/operation-output.json",
+      "permission": "operation:read own or assigned admin site",
+      "identity_source": "host",
+      "risk": "R0",
+      "timeout_ms": 5000,
+      "max_concurrency": 2,
+      "idempotency": "none",
+      "approval": "none",
+      "precondition": "none",
+      "receipt": false
+    },
+    {
+      "name": "list_conflict_cases",
+      "kind": "read",
+      "input_schema": ".agui/schemas/conflicts-input.json",
+      "output_schema": ".agui/schemas/conflicts-output.json",
+      "permission": "conflict:read assigned admin sites; employee only own",
+      "identity_source": "host",
+      "risk": "R0",
+      "timeout_ms": 3000,
+      "max_concurrency": 2,
+      "idempotency": "none",
+      "approval": "none",
+      "precondition": "none",
+      "receipt": false
+    },
+    {
+      "name": "prepare_conflict_decision",
+      "kind": "propose",
+      "input_schema": ".agui/schemas/decision-input.json",
+      "output_schema": ".agui/schemas/decision-output.json",
+      "permission": "conflict:propose assigned admin sites",
+      "identity_source": "host",
+      "risk": "R0",
+      "timeout_ms": 3000,
+      "max_concurrency": 2,
+      "idempotency": "none",
+      "approval": "none",
+      "precondition": "none",
+      "receipt": false
+    },
+    {
+      "name": "resolve_booking_conflict",
+      "kind": "write",
+      "input_schema": ".agui/schemas/resolve-input.json",
+      "output_schema": ".agui/schemas/resolve-output.json",
+      "permission": "conflict:decide assigned admin sites",
+      "identity_source": "host",
+      "risk": "R1",
+      "timeout_ms": 3000,
+      "max_concurrency": 1,
+      "idempotency": "required",
+      "approval": "explicit",
+      "precondition": "entity_version",
+      "receipt": true,
+      "precondition_detail": "本地数据库按tenant_id、case_id和case_revision条件更新未处理case；受影响行数非1则VERSION_CONFLICT，不产生任何设备占用。"
+    }
+  ],
+  "workflows": [
+    {
+      "id": "book_equipment",
+      "initial": "proposed",
+      "states": [
+        "proposed",
+        "approved",
+        "executing",
+        "committed",
+        "failed",
+        "unknown",
+        "expired"
+      ],
+      "terminals": [
+        "committed",
+        "failed",
+        "expired"
+      ],
+      "transitions": [
+        {
+          "from": "proposed",
+          "to": "approved",
+          "guard": "Host验证当前actor对准确proposal_id/revision/payload_hash的可信授权"
+        },
+        {
+          "from": "proposed",
+          "to": "expired",
+          "guard": "提案过期且尚未执行"
+        },
+        {
+          "from": "approved",
+          "to": "expired",
+          "guard": "执行前过期/撤销，确认无外部请求发出"
+        },
+        {
+          "from": "approved",
+          "to": "executing",
+          "guard": "权限/会话generation/提案完整性有效，取得operation执行租约；后端以原子区间不重叠谓词判定占用，不伪造全日历版本"
+        },
+        {
+          "from": "executing",
+          "to": "committed",
+          "guard": "后端原子占用成功receipt与请求设备/区间/owner匹配并持久化"
+        },
+        {
+          "from": "executing",
+          "to": "failed",
+          "guard": "得到确定未提交的拒绝或证明发送前失败"
+        },
+        {
+          "from": "executing",
+          "to": "unknown",
+          "guard": "请求可能已执行但没有可验证结果"
+        },
+        {
+          "from": "unknown",
+          "to": "committed",
+          "guard": "按稳定request_id从权威源查到匹配唯一receipt"
+        },
+        {
+          "from": "unknown",
+          "to": "failed",
+          "guard": "权威源证明请求已结束且未产生业务effect，暂未查到不算证明"
+        }
+      ],
+      "write_tools": [
+        "submit_equipment_booking"
+      ],
+      "unknown_resolution": "按request_id查询权威结果；5分钟未决升级人工核实但不改失败；不盲目生成新请求重试"
+    },
+    {
+      "id": "decide_conflict",
+      "initial": "proposed",
+      "states": [
+        "proposed",
+        "approved",
+        "executing",
+        "committed",
+        "failed",
+        "unknown",
+        "expired"
+      ],
+      "terminals": [
+        "committed",
+        "failed",
+        "expired"
+      ],
+      "transitions": [
+        {
+          "from": "proposed",
+          "to": "approved",
+          "guard": "Host验证当前actor对准确proposal_id/revision/payload_hash的可信授权"
+        },
+        {
+          "from": "proposed",
+          "to": "expired",
+          "guard": "提案过期且尚未执行"
+        },
+        {
+          "from": "approved",
+          "to": "expired",
+          "guard": "执行前过期/撤销，确认无外部请求发出"
+        },
+        {
+          "from": "approved",
+          "to": "executing",
+          "guard": "权限/会话generation/设备或case版本通过，原子获取operation执行租约"
+        },
+        {
+          "from": "executing",
+          "to": "committed",
+          "guard": "本地case条件更新与case receipt同事务提交；不产生设备占用"
+        },
+        {
+          "from": "executing",
+          "to": "failed",
+          "guard": "得到确定未提交的拒绝或证明发送前失败"
+        },
+        {
+          "from": "executing",
+          "to": "unknown",
+          "guard": "请求可能已执行但没有可验证结果"
+        },
+        {
+          "from": "unknown",
+          "to": "committed",
+          "guard": "按稳定request_id从权威源查到匹配唯一receipt"
+        },
+        {
+          "from": "unknown",
+          "to": "failed",
+          "guard": "权威源证明请求已结束且未产生业务effect，暂未查到不算证明"
+        }
+      ],
+      "write_tools": [
+        "resolve_booking_conflict"
+      ],
+      "unknown_resolution": "按request_id查询权威结果；5分钟未决升级人工核实但不改失败；不盲目生成新请求重试"
+    }
+  ],
+  "components": [
+    {
+      "name": "equipment_results",
+      "schema": ".agui/schemas/results-component.json",
+      "critical_fields": {
+        "evidence": "evidence"
+      },
+      "allows_partial": true,
+      "partial_actions": false,
+      "final_requires": "validated_event",
+      "action_tools": []
+    },
+    {
+      "name": "booking_confirmation",
+      "schema": ".agui/schemas/component.json",
+      "critical_fields": {
+        "proposal": "evidence",
+        "operation": "receipt"
+      },
+      "allows_partial": true,
+      "partial_actions": false,
+      "final_requires": "validated_event",
+      "action_tools": [
+        "submit_equipment_booking"
+      ]
+    },
+    {
+      "name": "conflict_review",
+      "schema": ".agui/schemas/conflict-component.json",
+      "critical_fields": {
+        "case": "evidence",
+        "decision_proposal": "evidence",
+        "operation": "receipt"
+      },
+      "allows_partial": true,
+      "partial_actions": false,
+      "final_requires": "validated_event",
+      "action_tools": [
+        "resolve_booking_conflict"
+      ]
+    }
+  ],
+  "budgets": {
+    "turn_timeout_ms": 20000,
+    "max_tool_calls": 8,
+    "max_parallel_tools": 2,
+    "max_input_bytes": 32768,
+    "max_output_tokens": 2500,
+    "max_cost_microunits": 200000
+  },
+  "controls": {
+    "H01": {
+      "applicability": "required",
+      "reason": "SSO身份注入，员工仅自己预约，管理员仅其园区；所有事件/状态查询同样隔离",
+      "implementation": [
+        "src/host/auth.py",
+        "src/adapters/booking.py"
+      ],
+      "cases": [
+        "tenant_isolation",
+        "unauthorized_write",
+        "admin_scope"
+      ]
+    },
+    "H02": {
+      "applicability": "required",
+      "reason": "预约请求与冲突决定持久幂等；远端需同key去重且可查询",
+      "implementation": [
+        "src/runtime/operations.py",
+        "src/adapters/booking.py"
+      ],
+      "cases": [
+        "duplicate_commit",
+        "changed_payload",
+        "concurrent_duplicate"
+      ]
+    },
+    "H03": {
+      "applicability": "required",
+      "reason": "绑定设备/规则或case版本、准确时间、payload hash与可信批准",
+      "implementation": [
+        "src/domain/proposals.py"
+      ],
+      "cases": [
+        "stale_proposal",
+        "unapproved_proposal"
+      ]
+    },
+    "H04": {
+      "applicability": "required",
+      "reason": "跨数据库与预约后端存在提交缺口；unknown与恢复查询为必需",
+      "implementation": [
+        "src/runtime/operations.py",
+        "src/workers/reconcile.py"
+      ],
+      "cases": [
+        "rollback_gap",
+        "lost_response",
+        "unknown_outcome",
+        "reconciliation",
+        "overlapping_intervals"
+      ]
+    },
+    "H05": {
+      "applicability": "required",
+      "reason": "聊天和页面动作并发；logout/reset撤销旧generation，不能覆盖业务记录",
+      "implementation": [
+        "src/host/sessions.py"
+      ],
+      "cases": [
+        "session_conflict",
+        "session_revocation"
+      ]
+    },
+    "H06": {
+      "applicability": "required",
+      "reason": "partial无写、成功receipt绑定，并用真实浏览器验证响应式、键盘任务与刷新恢复；tokens静态检查不能代替浏览器",
+      "implementation": [
+        "src/ui/registry.py",
+        "src/web/events.ts",
+        "src/web/layout.ts",
+        "src/web/accessibility.ts"
+      ],
+      "cases": [
+        "partial_disconnect",
+        "receipt_required",
+        "responsive_layout",
+        "keyboard_navigation",
+        "ui_state_recovery"
+      ]
+    },
+    "H07": {
+      "applicability": "required",
+      "reason": "设备规则与可用性过期；原子占用仍重新判冲突",
+      "implementation": [
+        "src/domain/evidence.py"
+      ],
+      "cases": [
+        "stale_evidence",
+        "timezone_boundary"
+      ]
+    },
+    "H08": {
+      "applicability": "not_applicable",
+      "reason": "本期没有长期偏好或异步记忆抽取；会话与真实预约记录不作为memory豁免其他控制",
+      "implementation": [],
+      "cases": []
+    },
+    "H09": {
+      "applicability": "required",
+      "reason": "有界deadline/并发/费用，已发送写超时不判失败",
+      "implementation": [
+        "src/runtime/budget.py"
+      ],
+      "cases": [
+        "tool_deadline",
+        "concurrency_budget"
+      ]
+    },
+    "H10": {
+      "applicability": "required",
+      "reason": "拒绝模型伪造授权、跨园区调度、设备源prompt injection和虚假成功",
+      "implementation": [
+        "src/host/intent.py"
+      ],
+      "cases": [
+        "denied_intent",
+        "false_success"
+      ]
+    },
+    "H11": {
+      "applicability": "required",
+      "reason": "需要真实模型多次任务结果与员工/管理员人工基线比较；当前未测",
+      "implementation": [
+        "tests/eval_booking.py"
+      ],
+      "cases": [
+        "task_quality",
+        "operator_efficiency"
+      ]
+    },
+    "H12": {
+      "applicability": "required",
+      "reason": "操作可关联与无模型确定性表单降级，恢复worker独立运行",
+      "implementation": [
+        "src/runtime/audit.py",
+        "src/web/fallback.ts"
+      ],
+      "cases": [
+        "audit_trace",
+        "degraded_mode"
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "booking_controls",
+      "kind": "deterministic",
+      "command": [
+        "{python}",
+        "tests/test_booking_controls.py"
+      ],
+      "timeout_s": 300,
+      "cases": [
+        "tenant_isolation",
+        "unauthorized_write",
+        "admin_scope",
+        "duplicate_commit",
+        "changed_payload",
+        "concurrent_duplicate",
+        "stale_proposal",
+        "unapproved_proposal",
+        "overlapping_intervals",
+        "session_conflict",
+        "session_revocation",
+        "partial_disconnect",
+        "receipt_required",
+        "stale_evidence",
+        "timezone_boundary",
+        "tool_deadline",
+        "concurrency_budget",
+        "denied_intent",
+        "false_success",
+        "audit_trace",
+        "degraded_mode"
+      ],
+      "inputs": [
+        "tests/test_booking_controls.py"
+      ]
+    },
+    {
+      "id": "booking_recovery",
+      "kind": "recovery",
+      "command": [
+        "{python}",
+        "tests/test_booking_recovery.py"
+      ],
+      "timeout_s": 300,
+      "cases": [
+        "rollback_gap",
+        "lost_response",
+        "unknown_outcome",
+        "reconciliation",
+        "restart_recovery"
+      ],
+      "inputs": [
+        "tests/test_booking_recovery.py"
+      ]
+    },
+    {
+      "id": "booking_quality",
+      "kind": "model_eval",
+      "command": [
+        "{python}",
+        "tests/eval_booking.py"
+      ],
+      "timeout_s": 3600,
+      "cases": [
+        "task_quality",
+        "operator_efficiency"
+      ],
+      "inputs": [
+        "tests/eval_booking.py"
+      ]
+    },
+    {
+      "id": "booking_load",
+      "kind": "load",
+      "command": [
+        "{python}",
+        "tests/load_booking.py"
+      ],
+      "timeout_s": 2400,
+      "cases": [
+        "latency_budget"
+      ],
+      "inputs": [
+        "tests/load_booking.py"
+      ]
+    },
+    {
+      "id": "booking_ui",
+      "kind": "ui",
+      "command": [
+        "{python}",
+        "tests/test_booking_ui.py"
+      ],
+      "timeout_s": 600,
+      "cases": [
+        "responsive_layout",
+        "keyboard_navigation",
+        "ui_state_recovery"
+      ],
+      "inputs": [
+        "tests/test_booking_ui.py",
+        "prototype/index.html",
+        "ui/tokens.json",
+        "ui/component-inventory.json"
+      ]
+    }
+  ],
+  "release": {
+    "minimum_samples": 120,
+    "task_success_min": 0.95,
+    "human_time_reduction_min": 0.2,
+    "rework_delta_max": 0,
+    "p95_latency_ms_max": 8000,
+    "cost_per_success_max": 0.3,
+    "evidence_max_age_hours": 48,
+    "baseline": "planned-current-equipment-booking-workflow-v1-unmeasured",
+    "model_version": "unselected-design-only",
+    "dataset_id": "planned-enterprise-equipment-tasks-v1-uncollected"
+  },
+  "ui_design": {
+    "spec": "DESIGN.md",
+    "tokens": "ui/tokens.json",
+    "inventory": "ui/component-inventory.json",
+    "prototype": "prototype/index.html"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "meeting-equipment-conflicts-input",
+  "type": "object",
+  "properties": {
+    "site_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "status": {
+      "enum": [
+        "open",
+        "offered",
+        "rejected"
+      ]
+    },
+    "cursor": {
+      "type": "string",
+      "maxLength": 256
+    }
+  },
+  "required": [
+    "site_id",
+    "status"
+  ],
+  "additionalProperties": false
+}

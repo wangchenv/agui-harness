@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "meeting-equipment-conflicts-output",
+  "type": "object",
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "site_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "requester_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "original_operation_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "requested_slot": {
+            "type": "object",
+            "properties": {
+              "equipment_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "start_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "end_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "timezone": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+              }
+            },
+            "required": [
+              "equipment_id",
+              "start_at",
+              "end_at",
+              "timezone"
+            ],
+            "additionalProperties": false
+          },
+          "status": {
+            "enum": [
+              "open",
+              "offered",
+              "rejected"
+            ]
+          }
+        },
+        "required": [
+          "case_id",
+          "revision",
+          "site_id",
+          "requester_id",
+          "original_operation_id",
+          "requested_slot",
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 50
+    },
+    "next_cursor": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 256
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "items",
+    "next_cursor",
+    "observed_at"
+  ],
+  "additionalProperties": false
+}

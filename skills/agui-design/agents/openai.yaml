@@ -1,0 +1,4 @@
+interface:
+  display_name: "AGUI 架构与契约"
+  short_description: "通过契约、受控业务执行、组件交互与可复现实测构建跨场景智能应用"
+  default_prompt: "使用 $agui-design 为当前业务定义架构、数据和执行契约。"

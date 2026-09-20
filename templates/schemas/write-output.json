@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "operation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "receipt_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "const": "committed"
+    },
+    "resource_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "operation_id",
+    "receipt_id",
+    "status",
+    "resource_id",
+    "version"
+  ],
+  "additionalProperties": false
+}

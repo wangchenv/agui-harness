@@ -1,0 +1,308 @@
+{
+  "schema_version": 1,
+  "status": "ready",
+  "project": {
+    "id": "service-desk-reference",
+    "domain": "IT服务工单优先级变更",
+    "scope": "reference"
+  },
+  "source_paths": [
+    "."
+  ],
+  "features": {
+    "writes": true,
+    "sessions": false,
+    "memory": false,
+    "ui": true,
+    "external_writes": false
+  },
+  "design": {
+    "architecture": "README.md",
+    "data": "README.md",
+    "workflows": "README.md",
+    "interaction": "README.md",
+    "operations": "README.md",
+    "evaluation": "README.md"
+  },
+  "entities": [
+    {
+      "name": "ticket",
+      "authority": "domain.TicketStore / SQLite tickets",
+      "id_field": "id",
+      "tenant_field": "tenant",
+      "version_field": "version",
+      "freshness": "服务端Evidence 60秒有效；提交时原子检查version与TTL；重放已提交receipt不重新写"
+    }
+  ],
+  "tools": [
+    {
+      "name": "read_ticket",
+      "kind": "read",
+      "input_schema": "schemas/read-input.json",
+      "output_schema": "schemas/read-output.json",
+      "permission": "ticket:read",
+      "identity_source": "host",
+      "risk": "R0",
+      "timeout_ms": 5000,
+      "max_concurrency": 4,
+      "idempotency": "none",
+      "approval": "none",
+      "precondition": "none",
+      "receipt": false
+    },
+    {
+      "name": "apply_ticket_priority",
+      "kind": "write",
+      "input_schema": "schemas/write-input.json",
+      "output_schema": "schemas/write-output.json",
+      "permission": "ticket:apply",
+      "identity_source": "host",
+      "risk": "R2",
+      "timeout_ms": 5000,
+      "max_concurrency": 1,
+      "idempotency": "required",
+      "approval": "explicit",
+      "precondition": "entity_version",
+      "receipt": true
+    }
+  ],
+  "workflows": [
+    {
+      "id": "change_ticket_priority",
+      "initial": "proposed",
+      "states": [
+        "proposed",
+        "approved",
+        "executing",
+        "committed",
+        "failed",
+        "unknown"
+      ],
+      "terminals": [
+        "committed",
+        "failed"
+      ],
+      "transitions": [
+        {
+          "from": "proposed",
+          "to": "approved",
+          "guard": "宿主核实操作者与准确提案摘要"
+        },
+        {
+          "from": "approved",
+          "to": "executing",
+          "guard": "权限/版本/有效期原子检查"
+        },
+        {
+          "from": "executing",
+          "to": "committed",
+          "guard": "权威业务凭证"
+        },
+        {
+          "from": "executing",
+          "to": "failed",
+          "guard": "确定未提交"
+        },
+        {
+          "from": "executing",
+          "to": "unknown",
+          "guard": "无法确定远端结果"
+        },
+        {
+          "from": "unknown",
+          "to": "committed",
+          "guard": "查询或对账得到成功凭证"
+        },
+        {
+          "from": "unknown",
+          "to": "failed",
+          "guard": "对账证明未产生效果"
+        }
+      ],
+      "write_tools": [
+        "apply_ticket_priority"
+      ],
+      "unknown_resolution": "按operation_id查后端结果；不可盲目重试不幂等外部写"
+    }
+  ],
+  "components": [
+    {
+      "name": "ticket_change",
+      "schema": "schemas/component.json",
+      "critical_fields": {
+        "proposal": "evidence",
+        "receipt": "receipt"
+      },
+      "allows_partial": true,
+      "partial_actions": false,
+      "final_requires": "validated_event",
+      "action_tools": [
+        "apply_ticket_priority"
+      ]
+    }
+  ],
+  "budgets": {
+    "turn_timeout_ms": 30000,
+    "max_tool_calls": 12,
+    "max_parallel_tools": 4,
+    "max_input_bytes": 64000,
+    "max_output_tokens": 4000,
+    "max_cost_microunits": 1000000
+  },
+  "controls": {
+    "H01": {
+      "applicability": "required",
+      "reason": "身份权限与租户隔离；本地组件案例可验证",
+      "implementation": [
+        "domain.py",
+        "ui.py"
+      ],
+      "cases": [
+        "tenant_isolation",
+        "unauthorized_write"
+      ]
+    },
+    "H02": {
+      "applicability": "required",
+      "reason": "业务操作幂等；本地组件案例可验证",
+      "implementation": [
+        "domain.py",
+        "ui.py"
+      ],
+      "cases": [
+        "duplicate_commit",
+        "changed_payload",
+        "concurrent_duplicate"
+      ]
+    },
+    "H03": {
+      "applicability": "required",
+      "reason": "提案版本与批准；本地组件案例可验证",
+      "implementation": [
+        "domain.py",
+        "ui.py"
+      ],
+      "cases": [
+        "stale_proposal",
+        "unapproved_proposal",
+        "approval_payload_bound"
+      ]
+    },
+    "H04": {
+      "applicability": "required",
+      "reason": "提交一致性与结果对账；本地组件案例可验证",
+      "implementation": [
+        "domain.py",
+        "ui.py"
+      ],
+      "cases": [
+        "rollback_gap",
+        "lost_response"
+      ]
+    },
+    "H05": {
+      "applicability": "not_applicable",
+      "reason": "会话并发与撤销；此组件示例不含会话、模型循环、记忆或线上运营，不声明应用级通过",
+      "implementation": [],
+      "cases": []
+    },
+    "H06": {
+      "applicability": "required",
+      "reason": "UI 终态与业务凭证；本地组件案例可验证",
+      "implementation": [
+        "domain.py",
+        "ui.py"
+      ],
+      "cases": [
+        "partial_disconnect",
+        "receipt_required",
+        "ui_terminal_state"
+      ]
+    },
+    "H07": {
+      "applicability": "required",
+      "reason": "事实来源与新鲜度；本地组件案例可验证",
+      "implementation": [
+        "domain.py",
+        "ui.py"
+      ],
+      "cases": [
+        "stale_evidence"
+      ]
+    },
+    "H08": {
+      "applicability": "not_applicable",
+      "reason": "记忆顺序与删除；此组件示例不含会话、模型循环、记忆或线上运营，不声明应用级通过",
+      "implementation": [],
+      "cases": []
+    },
+    "H09": {
+      "applicability": "not_applicable",
+      "reason": "时间并发费用预算；此组件示例不含会话、模型循环、记忆或线上运营，不声明应用级通过",
+      "implementation": [],
+      "cases": []
+    },
+    "H10": {
+      "applicability": "not_applicable",
+      "reason": "用户意图与错误模型边界；此组件示例不含会话、模型循环、记忆或线上运营，不声明应用级通过",
+      "implementation": [],
+      "cases": []
+    },
+    "H11": {
+      "applicability": "not_applicable",
+      "reason": "真实任务质量与效率；此组件示例不含会话、模型循环、记忆或线上运营，不声明应用级通过",
+      "implementation": [],
+      "cases": []
+    },
+    "H12": {
+      "applicability": "not_applicable",
+      "reason": "观测与降级；此组件示例不含会话、模型循环、记忆或线上运营，不声明应用级通过",
+      "implementation": [],
+      "cases": []
+    }
+  },
+  "checks": [
+    {
+      "id": "component_acceptance",
+      "kind": "deterministic",
+      "command": [
+        "{python}",
+        "adapter.py"
+      ],
+      "inputs": [
+        "adapter.py",
+        "domain.py",
+        "ui.py"
+      ],
+      "timeout_s": 30,
+      "cases": [
+        "tenant_isolation",
+        "unauthorized_write",
+        "duplicate_commit",
+        "changed_payload",
+        "stale_proposal",
+        "unapproved_proposal",
+        "rollback_gap",
+        "lost_response",
+        "concurrent_duplicate",
+        "partial_disconnect",
+        "receipt_required",
+        "stale_evidence",
+        "approval_payload_bound",
+        "ui_terminal_state"
+      ]
+    }
+  ],
+  "release": {
+    "minimum_samples": 100,
+    "task_success_min": 0.95,
+    "human_time_reduction_min": 0.2,
+    "rework_delta_max": 0,
+    "p95_latency_ms_max": 15000,
+    "cost_per_success_max": 1.0,
+    "evidence_max_age_hours": 168,
+    "baseline": "no-live-baseline-reference",
+    "model_version": "not-used-reference",
+    "dataset_id": "offline-service-desk-cases-v1"
+  }
+}

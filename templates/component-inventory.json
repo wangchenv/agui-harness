@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "components": [
+    {
+      "id": "change-preview",
+      "purpose": "审查明确变更内容与依据",
+      "states": [
+        "partial",
+        "validated",
+        "submitting",
+        "committed",
+        "unknown",
+        "interrupted"
+      ],
+      "accessibility": {
+        "keyboard": "Tab到主操作；Enter/Space激活；Escape关闭非阻断面板",
+        "accessible_name": "操作按钮显示动作与目标；结果用polite live region",
+        "focus": "打开审查后聚焦标题；关闭返回触发按钮"
+      },
+      "actions": [
+        {
+          "id": "approve-change",
+          "effect": "write",
+          "allowed_states": [
+            "validated"
+          ],
+          "result_source": "receipt"
+        }
+      ]
+    }
+  ],
+  "screens": [
+    {
+      "id": "task-workspace",
+      "role": "operator",
+      "primary_task": "核对并完成一项业务变更",
+      "components": [
+        "change-preview"
+      ],
+      "responsive": {
+        "mobile": "单列，优先当前任务与主操作，助手可展开",
+        "tablet": "任务详情主列，队列可折叠",
+        "desktop": "队列、详情与审查辅助区；不挤压正文"
+      }
+    }
+  ]
+}

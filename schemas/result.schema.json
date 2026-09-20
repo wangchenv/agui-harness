@@ -1,0 +1,109 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]*$"
+          },
+          "status": {
+            "enum": [
+              "passed",
+              "failed",
+              "skipped"
+            ]
+          },
+          "detail": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "detail"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "execution_mode": {
+          "enum": [
+            "deterministic",
+            "live_model",
+            "load",
+            "recovery",
+            "browser"
+          ]
+        },
+        "model_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dataset_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "baseline_version": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "execution_mode"
+      ],
+      "additionalProperties": false
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "sample_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "task_success_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "human_time_reduction": {
+          "type": "number",
+          "maximum": 1
+        },
+        "rework_delta": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 1
+        },
+        "p95_latency_ms": {
+          "type": "number",
+          "minimum": 0
+        },
+        "cost_per_success": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "cases"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agui-harness:evidence-result:1"
+}

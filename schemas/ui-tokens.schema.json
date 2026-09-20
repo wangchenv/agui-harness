@@ -1,0 +1,211 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "color": {
+      "type": "object",
+      "properties": {
+        "canvas": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "surface": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "text": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "text_muted": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "primary": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "primary_text": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "border": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "focus": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "danger": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "success": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        }
+      },
+      "required": [
+        "canvas",
+        "surface",
+        "text",
+        "text_muted",
+        "primary",
+        "primary_text",
+        "border",
+        "focus",
+        "danger",
+        "success"
+      ],
+      "additionalProperties": false
+    },
+    "typography": {
+      "type": "object",
+      "properties": {
+        "font_family": {
+          "type": "string",
+          "minLength": 1
+        },
+        "base_px": {
+          "type": "integer",
+          "minimum": 14
+        },
+        "line_height": {
+          "type": "number",
+          "minimum": 1.3
+        },
+        "scale_px": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 10
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "font_family",
+        "base_px",
+        "line_height",
+        "scale_px"
+      ],
+      "additionalProperties": false
+    },
+    "spacing_px": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "minimum": 0
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "radii_px": {
+      "type": "object",
+      "properties": {
+        "control": {
+          "type": "number",
+          "minimum": 0
+        },
+        "card": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "control",
+        "card"
+      ],
+      "additionalProperties": false
+    },
+    "breakpoints_px": {
+      "type": "object",
+      "properties": {
+        "mobile": {
+          "type": "integer",
+          "minimum": 320
+        },
+        "tablet": {
+          "type": "integer",
+          "minimum": 600
+        },
+        "desktop": {
+          "type": "integer",
+          "minimum": 1000
+        }
+      },
+      "required": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "additionalProperties": false
+    },
+    "contrast_pairs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "foreground": {
+            "type": "string",
+            "minLength": 1
+          },
+          "background": {
+            "type": "string",
+            "minLength": 1
+          },
+          "usage": {
+            "enum": [
+              "text",
+              "large_text",
+              "non_text"
+            ]
+          }
+        },
+        "required": [
+          "foreground",
+          "background",
+          "usage"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "motion": {
+      "type": "object",
+      "properties": {
+        "reduce_motion": {
+          "const": true
+        },
+        "max_duration_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 500
+        }
+      },
+      "required": [
+        "reduce_motion",
+        "max_duration_ms"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "color",
+    "typography",
+    "spacing_px",
+    "radii_px",
+    "breakpoints_px",
+    "contrast_pairs",
+    "motion"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AGUI web design tokens; structure and selected opaque-color contrast checks only"
+}

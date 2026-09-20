@@ -1,0 +1,1130 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "ready"
+      ]
+    },
+    "project": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]*$"
+        },
+        "domain": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "enum": [
+            "reference",
+            "application"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "domain",
+        "scope"
+      ],
+      "additionalProperties": false
+    },
+    "source_paths": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Path relative to the target project, never outside it."
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "features": {
+      "type": "object",
+      "properties": {
+        "writes": {
+          "type": "boolean"
+        },
+        "sessions": {
+          "type": "boolean"
+        },
+        "memory": {
+          "type": "boolean"
+        },
+        "ui": {
+          "type": "boolean"
+        },
+        "external_writes": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "writes",
+        "sessions",
+        "memory",
+        "ui",
+        "external_writes"
+      ],
+      "additionalProperties": false
+    },
+    "design": {
+      "type": "object",
+      "properties": {
+        "architecture": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path relative to the target project, never outside it."
+        },
+        "data": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path relative to the target project, never outside it."
+        },
+        "workflows": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path relative to the target project, never outside it."
+        },
+        "interaction": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path relative to the target project, never outside it."
+        },
+        "operations": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path relative to the target project, never outside it."
+        },
+        "evaluation": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path relative to the target project, never outside it."
+        }
+      },
+      "required": [
+        "architecture",
+        "data",
+        "workflows",
+        "interaction",
+        "operations",
+        "evaluation"
+      ],
+      "additionalProperties": false
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]*$"
+          },
+          "authority": {
+            "type": "string",
+            "minLength": 1
+          },
+          "id_field": {
+            "type": "string",
+            "minLength": 1
+          },
+          "tenant_field": {
+            "type": "string",
+            "minLength": 1
+          },
+          "version_field": {
+            "type": "string",
+            "minLength": 1
+          },
+          "freshness": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "name",
+          "authority",
+          "id_field",
+          "tenant_field",
+          "version_field",
+          "freshness"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]*$"
+          },
+          "kind": {
+            "enum": [
+              "read",
+              "propose",
+              "write",
+              "present"
+            ]
+          },
+          "input_schema": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Path relative to the target project, never outside it."
+          },
+          "output_schema": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Path relative to the target project, never outside it."
+          },
+          "permission": {
+            "type": "string",
+            "minLength": 1
+          },
+          "identity_source": {
+            "enum": [
+              "host"
+            ]
+          },
+          "risk": {
+            "enum": [
+              "R0",
+              "R1",
+              "R2",
+              "R3"
+            ]
+          },
+          "timeout_ms": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "max_concurrency": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "idempotency": {
+            "enum": [
+              "required",
+              "none"
+            ]
+          },
+          "approval": {
+            "enum": [
+              "none",
+              "policy",
+              "explicit"
+            ]
+          },
+          "precondition": {
+            "enum": [
+              "entity_version",
+              "none",
+              "atomic_predicate"
+            ]
+          },
+          "receipt": {
+            "type": "boolean"
+          },
+          "precondition_detail": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "name",
+          "kind",
+          "input_schema",
+          "output_schema",
+          "permission",
+          "identity_source",
+          "risk",
+          "timeout_ms",
+          "max_concurrency",
+          "idempotency",
+          "approval",
+          "precondition",
+          "receipt"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "workflows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]*$"
+          },
+          "initial": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]*$"
+          },
+          "states": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_-]*$"
+            },
+            "minItems": 2,
+            "uniqueItems": true
+          },
+          "terminals": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_-]*$"
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "transitions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "from": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_-]*$"
+                },
+                "to": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_-]*$"
+                },
+                "guard": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "from",
+                "to",
+                "guard"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "write_tools": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_-]*$"
+            },
+            "minItems": 0,
+            "uniqueItems": true
+          },
+          "unknown_resolution": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "id",
+          "initial",
+          "states",
+          "terminals",
+          "transitions",
+          "write_tools",
+          "unknown_resolution"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]*$"
+          },
+          "schema": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Path relative to the target project, never outside it."
+          },
+          "critical_fields": {
+            "type": "object",
+            "additionalProperties": {
+              "enum": [
+                "evidence",
+                "receipt",
+                "model"
+              ]
+            }
+          },
+          "allows_partial": {
+            "type": "boolean"
+          },
+          "partial_actions": {
+            "const": false
+          },
+          "final_requires": {
+            "const": "validated_event"
+          },
+          "action_tools": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_-]*$"
+            },
+            "minItems": 0,
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "name",
+          "schema",
+          "critical_fields",
+          "allows_partial",
+          "partial_actions",
+          "final_requires",
+          "action_tools"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0,
+      "uniqueItems": true
+    },
+    "budgets": {
+      "type": "object",
+      "properties": {
+        "turn_timeout_ms": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_tool_calls": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_parallel_tools": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_input_bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_output_tokens": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_cost_microunits": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "turn_timeout_ms",
+        "max_tool_calls",
+        "max_parallel_tools",
+        "max_input_bytes",
+        "max_output_tokens",
+        "max_cost_microunits"
+      ],
+      "additionalProperties": false
+    },
+    "controls": {
+      "type": "object",
+      "properties": {
+        "H01": {
+          "type": "object",
+          "properties": {
+            "applicability": {
+              "enum": [
+                "required",
+                "not_applicable"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "implementation": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Path relative to the target project, never outside it."
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            },
+            "cases": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_-]*$"
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "applicability",
+            "reason",
+            "implementation",
+            "cases"
+          ],
+          "additionalProperties": false
+        },
+        "H02": {
+          "type": "object",
+          "properties": {
+            "applicability": {
+              "enum": [
+                "required",
+                "not_applicable"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "implementation": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Path relative to the target project, never outside it."
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            },
+            "cases": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_-]*$"
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "applicability",
+            "reason",
+            "implementation",
+            "cases"
+          ],
+          "additionalProperties": false
+        },
+        "H03": {
+          "type": "object",
+          "properties": {
+            "applicability": {
+              "enum": [
+                "required",
+                "not_applicable"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "implementation": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Path relative to the target project, never outside it."
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            },
+            "cases": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_-]*$"
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "applicability",
+            "reason",
+            "implementation",
+            "cases"
+          ],
+          "additionalProperties": false
+        },
+        "H04": {
+          "type": "object",
+          "properties": {
+            "applicability": {
+              "enum": [
+                "required",
+                "not_applicable"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "implementation": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Path relative to the target project, never outside it."
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            },
+            "cases": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_-]*$"
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "applicability",
+            "reason",
+            "implementation",
+            "cases"
+          ],
+          "additionalProperties": false
+        },
+        "H05": {
+          "type": "object",
+          "properties": {
+            "applicability": {
+              "enum": [
+                "required",
+                "not_applicable"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "implementation": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Path relative to the target project, never outside it."
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            },
+            "cases": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_-]*$"
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "applicability",
+            "reason",
+            "implementation",
+            "cases"
+          ],
+          "additionalProperties": false
+        },
+        "H06": {
+          "type": "object",
+          "properties": {
+            "applicability": {
+              "enum": [
+                "required",
+                "not_applicable"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "implementation": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Path relative to the target project, never outside it."
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            },
+            "cases": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_-]*$"
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "applicability",
+            "reason",
+            "implementation",
+            "cases"
+          ],
+          "additionalProperties": false
+        },
+        "H07": {
+          "type": "object",
+          "properties": {
+            "applicability": {
+              "enum": [
+                "required",
+                "not_applicable"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "implementation": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Path relative to the target project, never outside it."
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            },
+            "cases": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_-]*$"
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "applicability",
+            "reason",
+            "implementation",
+            "cases"
+          ],
+          "additionalProperties": false
+        },
+        "H08": {
+          "type": "object",
+          "properties": {
+            "applicability": {
+              "enum": [
+                "required",
+                "not_applicable"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "implementation": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Path relative to the target project, never outside it."
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            },
+            "cases": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_-]*$"
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "applicability",
+            "reason",
+            "implementation",
+            "cases"
+          ],
+          "additionalProperties": false
+        },
+        "H09": {
+          "type": "object",
+          "properties": {
+            "applicability": {
+              "enum": [
+                "required",
+                "not_applicable"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "implementation": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Path relative to the target project, never outside it."
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            },
+            "cases": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_-]*$"
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "applicability",
+            "reason",
+            "implementation",
+            "cases"
+          ],
+          "additionalProperties": false
+        },
+        "H10": {
+          "type": "object",
+          "properties": {
+            "applicability": {
+              "enum": [
+                "required",
+                "not_applicable"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "implementation": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Path relative to the target project, never outside it."
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            },
+            "cases": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_-]*$"
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "applicability",
+            "reason",
+            "implementation",
+            "cases"
+          ],
+          "additionalProperties": false
+        },
+        "H11": {
+          "type": "object",
+          "properties": {
+            "applicability": {
+              "enum": [
+                "required",
+                "not_applicable"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "implementation": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Path relative to the target project, never outside it."
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            },
+            "cases": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_-]*$"
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "applicability",
+            "reason",
+            "implementation",
+            "cases"
+          ],
+          "additionalProperties": false
+        },
+        "H12": {
+          "type": "object",
+          "properties": {
+            "applicability": {
+              "enum": [
+                "required",
+                "not_applicable"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "implementation": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Path relative to the target project, never outside it."
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            },
+            "cases": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_-]*$"
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "applicability",
+            "reason",
+            "implementation",
+            "cases"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "H01",
+        "H02",
+        "H03",
+        "H04",
+        "H05",
+        "H06",
+        "H07",
+        "H08",
+        "H09",
+        "H10",
+        "H11",
+        "H12"
+      ],
+      "additionalProperties": false
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]*$"
+          },
+          "kind": {
+            "enum": [
+              "deterministic",
+              "model_eval",
+              "load",
+              "recovery",
+              "ui"
+            ]
+          },
+          "command": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "timeout_s": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3600
+          },
+          "cases": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_-]*$"
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "inputs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "command",
+          "timeout_s",
+          "cases",
+          "inputs"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0,
+      "uniqueItems": true
+    },
+    "release": {
+      "type": "object",
+      "properties": {
+        "minimum_samples": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "task_success_min": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "human_time_reduction_min": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "rework_delta_max": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 1
+        },
+        "p95_latency_ms_max": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cost_per_success_max": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "evidence_max_age_hours": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "baseline": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dataset_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "minimum_samples",
+        "task_success_min",
+        "human_time_reduction_min",
+        "rework_delta_max",
+        "p95_latency_ms_max",
+        "cost_per_success_max",
+        "evidence_max_age_hours",
+        "baseline",
+        "model_version",
+        "dataset_id"
+      ],
+      "additionalProperties": false
+    },
+    "ui_design": {
+      "type": "object",
+      "properties": {
+        "spec": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tokens": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inventory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prototype": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "spec",
+        "tokens",
+        "inventory",
+        "prototype"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "status",
+    "project",
+    "source_paths",
+    "features",
+    "design",
+    "entities",
+    "tools",
+    "workflows",
+    "components",
+    "budgets",
+    "controls",
+    "checks",
+    "release"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agui-harness:contract:1",
+  "title": "AGUI application design and verification contract; not AG-UI wire format"
+}

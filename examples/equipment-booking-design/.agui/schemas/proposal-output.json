@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "meeting-equipment-proposal-output",
+  "type": "object",
+  "properties": {
+    "proposal_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "payload_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "owner_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "equipment_revision": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "policy_revision": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "slot": {
+      "type": "object",
+      "properties": {
+        "equipment_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "start_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "end_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "timezone": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      },
+      "required": [
+        "equipment_id",
+        "start_at",
+        "end_at",
+        "timezone"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "proposal_id",
+    "revision",
+    "payload_hash",
+    "expires_at",
+    "owner_id",
+    "equipment_revision",
+    "policy_revision",
+    "slot"
+  ],
+  "additionalProperties": false
+}

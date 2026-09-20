@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "phase": {
+      "enum": [
+        "idle",
+        "partial",
+        "validated",
+        "committed",
+        "interrupted"
+      ]
+    },
+    "can_approve": {
+      "type": "boolean"
+    },
+    "receipt": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "schema_version": {
+              "const": 1
+            },
+            "tenant_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "operation_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "proposal_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "proposal_hash": {
+              "type": "string",
+              "minLength": 1
+            },
+            "operator": {
+              "type": "string",
+              "minLength": 1
+            },
+            "ticket_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "priority_before": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "priority_after": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "committed_at": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "schema_version",
+            "tenant_id",
+            "operation_id",
+            "proposal_id",
+            "proposal_hash",
+            "operator",
+            "ticket_id",
+            "priority_before",
+            "priority_after",
+            "version",
+            "committed_at"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "proposal": {
+      "type": "object"
+    },
+    "proposal_hash": {
+      "type": "string",
+      "minLength": 1
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "phase",
+    "can_approve",
+    "receipt"
+  ],
+  "additionalProperties": false
+}

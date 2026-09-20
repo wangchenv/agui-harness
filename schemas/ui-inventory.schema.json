@@ -1,0 +1,179 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "purpose": {
+            "type": "string",
+            "minLength": 1
+          },
+          "states": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "accessibility": {
+            "type": "object",
+            "properties": {
+              "keyboard": {
+                "type": "string",
+                "minLength": 1
+              },
+              "accessible_name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "focus": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "keyboard",
+              "accessible_name",
+              "focus"
+            ],
+            "additionalProperties": false
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "effect": {
+                  "enum": [
+                    "read",
+                    "write"
+                  ]
+                },
+                "allowed_states": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "minItems": 1,
+                  "uniqueItems": true
+                },
+                "result_source": {
+                  "enum": [
+                    "local",
+                    "evidence",
+                    "receipt"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "effect",
+                "allowed_states",
+                "result_source"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 0,
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "id",
+          "purpose",
+          "states",
+          "accessibility",
+          "actions"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "screens": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "type": "string",
+            "minLength": 1
+          },
+          "primary_task": {
+            "type": "string",
+            "minLength": 1
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "responsive": {
+            "type": "object",
+            "properties": {
+              "mobile": {
+                "type": "string",
+                "minLength": 1
+              },
+              "tablet": {
+                "type": "string",
+                "minLength": 1
+              },
+              "desktop": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "mobile",
+              "tablet",
+              "desktop"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "primary_task",
+          "components",
+          "responsive"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "schema_version",
+    "components",
+    "screens"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AGUI UI component and screen design inventory"
+}

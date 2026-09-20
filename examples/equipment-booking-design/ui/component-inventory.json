@@ -1,0 +1,347 @@
+{
+  "schema_version": 1,
+  "components": [
+    {
+      "id": "slot-search",
+      "purpose": "选择园区、需求、明确起止与时区，确定性查询可借设备",
+      "states": [
+        "editing",
+        "loading",
+        "empty",
+        "error",
+        "ready"
+      ],
+      "accessibility": {
+        "keyboard": "Tab按园区/开始/结束/时区/需求/查询顺序；Enter提交查询",
+        "accessible_name": "每个输入可见label；日期错误与字段关联；查询按钮为“查询设备”",
+        "focus": "错误聚焦摘要；成功保持焦点并以status宣布结果数量"
+      },
+      "actions": [
+        {
+          "id": "find-equipment",
+          "effect": "read",
+          "allowed_states": [
+            "editing",
+            "empty",
+            "error",
+            "ready"
+          ],
+          "result_source": "evidence"
+        }
+      ]
+    },
+    {
+      "id": "equipment_results",
+      "purpose": "比较真实设备与完整区间可用性；从evidence补全关键字段",
+      "states": [
+        "loading",
+        "partial",
+        "validated",
+        "empty",
+        "error",
+        "stale",
+        "interrupted"
+      ],
+      "accessibility": {
+        "keyboard": "Tab逐条选择真实button；Enter/Space选设备，无鼠标拖拽依赖",
+        "accessible_name": "选择按钮包含设备名和编号；可用性含观察时间",
+        "focus": "选择后聚焦审查标题；返回恢复原设备选择按钮"
+      },
+      "actions": [
+        {
+          "id": "prepare-booking-proposal",
+          "effect": "read",
+          "allowed_states": [
+            "validated"
+          ],
+          "result_source": "evidence"
+        },
+        {
+          "id": "refresh-equipment",
+          "effect": "read",
+          "allowed_states": [
+            "empty",
+            "error",
+            "stale",
+            "interrupted"
+          ],
+          "result_source": "evidence"
+        }
+      ]
+    },
+    {
+      "id": "booking_confirmation",
+      "purpose": "核对当前员工、设备、准确时间与有效期，提交并展示权威结果",
+      "states": [
+        "partial",
+        "validated",
+        "submitting",
+        "committed",
+        "unknown",
+        "stale",
+        "interrupted",
+        "failed",
+        "expired"
+      ],
+      "accessibility": {
+        "keyboard": "Tab摘要后到唯一提交按钮；Enter/Space提交；unknown仅可查进度",
+        "accessible_name": "按钮为“提交预约：设备名”；结果region含预约号和准确区间",
+        "focus": "校验错误聚焦摘要；成功polite宣布且不抢焦点；关闭返回选择来源"
+      },
+      "actions": [
+        {
+          "id": "submit-equipment-booking",
+          "effect": "write",
+          "allowed_states": [
+            "validated"
+          ],
+          "result_source": "receipt"
+        },
+        {
+          "id": "get-booking-operation",
+          "effect": "read",
+          "allowed_states": [
+            "submitting",
+            "unknown",
+            "committed"
+          ],
+          "result_source": "receipt"
+        },
+        {
+          "id": "renew-booking-proposal",
+          "effect": "read",
+          "allowed_states": [
+            "stale",
+            "expired",
+            "failed",
+            "interrupted"
+          ],
+          "result_source": "evidence"
+        }
+      ]
+    },
+    {
+      "id": "operation-history",
+      "purpose": "找回自己的正在执行、未决与已确认预约，不依赖聊天历史",
+      "states": [
+        "loading",
+        "ready",
+        "empty",
+        "error"
+      ],
+      "accessibility": {
+        "keyboard": "原生列表链接支持Tab/Enter；筛选无需悬停",
+        "accessible_name": "每条名称包括设备、时间和业务状态，unknown明确为核实中",
+        "focus": "从详情返回保留筛选/列表位置；读取后不聚焦已隐藏项目"
+      },
+      "actions": [
+        {
+          "id": "load-own-operations",
+          "effect": "read",
+          "allowed_states": [
+            "ready",
+            "empty",
+            "error"
+          ],
+          "result_source": "evidence"
+        }
+      ]
+    },
+    {
+      "id": "conflict-queue",
+      "purpose": "管理员在管辖园区选择待处理请求",
+      "states": [
+        "loading",
+        "ready",
+        "empty",
+        "error"
+      ],
+      "accessibility": {
+        "keyboard": "Tab筛选/队列链接；Enter打开请求，不依赖颜色判断状态",
+        "accessible_name": "每条请求有编号、园区、完整时间、等待时长和状态",
+        "focus": "打开详情聚焦标题；返回队列恢复原请求位置"
+      },
+      "actions": [
+        {
+          "id": "list-conflict-cases",
+          "effect": "read",
+          "allowed_states": [
+            "ready",
+            "empty",
+            "error"
+          ],
+          "result_source": "evidence"
+        }
+      ]
+    },
+    {
+      "id": "conflict_review",
+      "purpose": "对比原请求与替代建议，记录建议或驳回；不产生设备占用",
+      "states": [
+        "partial",
+        "editing",
+        "validated",
+        "submitting",
+        "committed",
+        "unknown",
+        "stale",
+        "interrupted",
+        "failed"
+      ],
+      "accessibility": {
+        "keyboard": "Tab依次理由/候选/校验/决定，Enter/Space；移动端双列改顺序分区",
+        "accessible_name": "决定按钮明确“记录替代建议/驳回请求”；结果不叫预约成功",
+        "focus": "验证后聚焦差异标题；并发冲突聚焦说明；决定完成polite宣布"
+      },
+      "actions": [
+        {
+          "id": "prepare-conflict-decision",
+          "effect": "read",
+          "allowed_states": [
+            "editing",
+            "validated",
+            "stale",
+            "failed"
+          ],
+          "result_source": "evidence"
+        },
+        {
+          "id": "resolve-booking-conflict",
+          "effect": "write",
+          "allowed_states": [
+            "validated"
+          ],
+          "result_source": "receipt"
+        },
+        {
+          "id": "query-conflict-operation",
+          "effect": "read",
+          "allowed_states": [
+            "unknown",
+            "submitting",
+            "committed"
+          ],
+          "result_source": "receipt"
+        }
+      ]
+    },
+    {
+      "id": "assistant-panel",
+      "purpose": "解释设备选择和澄清需求，随时回到结构化表单；不直接提供模型写按钮",
+      "states": [
+        "ready",
+        "streaming",
+        "interrupted",
+        "unavailable"
+      ],
+      "accessibility": {
+        "keyboard": "输入Enter发送、Shift+Enter换行；模态展开Esc关闭并恢复触发器",
+        "accessible_name": "输入名称“描述会议设备需求”；生成状态单独status，不逐token朗读",
+        "focus": "非模态面板不trap focus；模态展开后先聚焦标题或输入"
+      },
+      "actions": [
+        {
+          "id": "request-equipment-help",
+          "effect": "read",
+          "allowed_states": [
+            "ready",
+            "interrupted"
+          ],
+          "result_source": "evidence"
+        }
+      ]
+    },
+    {
+      "id": "recovery-status",
+      "purpose": "说明断流、重连与快照恢复；明确不代表预约失败",
+      "states": [
+        "connected",
+        "reconnecting",
+        "snapshot_required",
+        "restored",
+        "error"
+      ],
+      "accessibility": {
+        "keyboard": "Tab到“重新核实状态”；重连不抢焦点",
+        "accessible_name": "status区说明连接状态，业务结果仍由operation卡片显示",
+        "focus": "恢复后保持当前可见焦点；源元素失效则回到结果区标题"
+      },
+      "actions": [
+        {
+          "id": "restore-snapshot",
+          "effect": "read",
+          "allowed_states": [
+            "reconnecting",
+            "snapshot_required",
+            "error"
+          ],
+          "result_source": "evidence"
+        }
+      ]
+    }
+  ],
+  "screens": [
+    {
+      "id": "employee-search",
+      "role": "employee",
+      "primary_task": "按园区/完整区间和设备能力找到真实实物",
+      "components": [
+        "slot-search",
+        "equipment_results",
+        "assistant-panel",
+        "recovery-status"
+      ],
+      "responsive": {
+        "mobile": "单列筛选折叠摘要+结果；助手独立展开；日期地点可换行",
+        "tablet": "单主列结果，助手折叠；筛选两列但保持DOM阅读顺序",
+        "desktop": "主列表占满可用宽度，选择后右侧出现360px审查区"
+      }
+    },
+    {
+      "id": "employee-review",
+      "role": "employee",
+      "primary_task": "确认准确设备与时间并提交自己的预约",
+      "components": [
+        "booking_confirmation",
+        "assistant-panel",
+        "recovery-status"
+      ],
+      "responsive": {
+        "mobile": "步骤页先摘要后按钮，无遮挡错误的底部悬浮栏",
+        "tablet": "审查卡在主内容下方；助手折叠",
+        "desktop": "主列表旁360px审查区，唯一提交按钮紧邻准确摘要"
+      }
+    },
+    {
+      "id": "employee-operations",
+      "role": "employee",
+      "primary_task": "刷新/重新进入后确认真实预约结果",
+      "components": [
+        "operation-history",
+        "booking_confirmation",
+        "recovery-status"
+      ],
+      "responsive": {
+        "mobile": "状态列表进入详情；unknown有核实入口，没有新建重试按钮",
+        "tablet": "单列表与展开详情",
+        "desktop": "左列表右详情；预约号与完整区间可复制"
+      }
+    },
+    {
+      "id": "admin-conflicts",
+      "role": "site-admin",
+      "primary_task": "在自身园区记录替代建议或驳回待处理请求",
+      "components": [
+        "conflict-queue",
+        "conflict_review",
+        "assistant-panel",
+        "recovery-status"
+      ],
+      "responsive": {
+        "mobile": "先队列后详情；原/建议由双列改带标题顺序区块；返回保留滚动",
+        "tablet": "队列可折叠，当前case编号/园区/时间始终可见",
+        "desktop": "320px队列+主详情/差异审查，助手默认折叠"
+      }
+    }
+  ]
+}

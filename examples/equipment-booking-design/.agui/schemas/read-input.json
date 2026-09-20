@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "meeting-equipment-read-input",
+  "type": "object",
+  "properties": {
+    "site_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "need": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "start_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "end_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "timezone": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    }
+  },
+  "required": [
+    "site_id",
+    "need",
+    "start_at",
+    "end_at",
+    "timezone"
+  ],
+  "additionalProperties": false
+}

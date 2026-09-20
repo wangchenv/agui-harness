@@ -1,0 +1,2450 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agui-harness:application:1",
+  "title": "Suggested AGUI Harness application protocol v1; not official AG-UI wire format",
+  "description": "Opt-in application-layer shape definitions. They do not authenticate identity, authorize access, enforce current versions/expiry, verify hashes or receipts, or implement atomic commits. Compose domain schemas and test service/database semantics.",
+  "$comment": "All protocol objects are closed. Only DomainPayload is intentionally open. UTC epoch milliseconds explicitly encode server timestamps. A schema-valid rejected/revoked/expired/unknown record is not an instruction to execute it.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/TrustedContext"
+    },
+    {
+      "$ref": "#/$defs/EntityRef"
+    },
+    {
+      "$ref": "#/$defs/Evidence"
+    },
+    {
+      "$ref": "#/$defs/Intent"
+    },
+    {
+      "$ref": "#/$defs/Proposal"
+    },
+    {
+      "$ref": "#/$defs/Approval"
+    },
+    {
+      "$ref": "#/$defs/Operation"
+    },
+    {
+      "$ref": "#/$defs/Receipt"
+    },
+    {
+      "$ref": "#/$defs/UIEvent"
+    },
+    {
+      "$ref": "#/$defs/MemoryFact"
+    }
+  ],
+  "$defs": {
+    "EpochMilliseconds": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991,
+      "description": "UTC Unix epoch milliseconds, integer within JavaScript safe range. This is the explicit UTC/time-zone representation used by this suggested wire schema. Ordering against now or another timestamp is a service check."
+    },
+    "MoneyMinorUnits": {
+      "type": "object",
+      "properties": {
+        "amount_minor": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "minor_unit_exponent": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 6
+        }
+      },
+      "required": [
+        "amount_minor",
+        "currency",
+        "minor_unit_exponent"
+      ],
+      "additionalProperties": false,
+      "description": "Optional money representation; e.g. 12345 USD with exponent 2 means USD 123.45. The service validates actual currency/exponent, signs, rounding, range and overflow. Never use binary float for monetary invariants."
+    },
+    "DomainPayload": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Intentionally open domain data, not a validated business payload. MUST be validated against the referenced application/domain schema and service semantics before use. No credentials or authority claims may be trusted from this object."
+    },
+    "TrustedContext": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "context_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "tenant_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "created_at": {
+          "$ref": "#/$defs/EpochMilliseconds"
+        },
+        "principal_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "session_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "authority_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "authentication_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "authenticated_at": {
+          "$ref": "#/$defs/EpochMilliseconds"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/EpochMilliseconds"
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "pattern": "^\\S+$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "policy_version": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          ],
+          "description": "Authority-assigned integer version or opaque ETag; not a timestamp or permission."
+        }
+      },
+      "required": [
+        "schema_version",
+        "context_id",
+        "tenant_id",
+        "created_at",
+        "principal_id",
+        "request_id",
+        "session_id",
+        "run_id",
+        "authority_ref",
+        "authentication_ref",
+        "authenticated_at",
+        "expires_at",
+        "permissions",
+        "policy_version"
+      ],
+      "additionalProperties": false,
+      "description": "Host-created context after authentication/authorization. Successful JSON validation NEVER turns model/browser claims into trusted identity. Do not include bearer credentials in this model."
+    },
+    "EntityRef": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "entity_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "tenant_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "created_at": {
+          "$ref": "#/$defs/EpochMilliseconds"
+        },
+        "entity_type": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "version": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          ],
+          "description": "Authority-assigned integer version or opaque ETag; not a timestamp or permission."
+        },
+        "authority": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "display_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "snapshot": {
+          "$ref": "#/$defs/DomainPayload"
+        },
+        "domain_schema_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "schema_version",
+        "entity_id",
+        "tenant_id",
+        "created_at",
+        "entity_type",
+        "version",
+        "authority"
+      ],
+      "additionalProperties": false,
+      "description": "Scoped entity reference; created_at is reference creation time, not necessarily entity birth. Version and authority refer to the system of record. Display labels are never write identifiers.",
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "snapshot"
+            ]
+          },
+          "then": {
+            "required": [
+              "domain_schema_ref"
+            ]
+          }
+        }
+      ]
+    },
+    "Evidence": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "evidence_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "tenant_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "created_at": {
+          "$ref": "#/$defs/EpochMilliseconds"
+        },
+        "entity_ref": {
+          "$ref": "#/$defs/EntityRef"
+        },
+        "source_ref": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "enum": [
+                "tool_call",
+                "user_message",
+                "ui_action",
+                "operation",
+                "document",
+                "extraction"
+              ]
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^\\S+$"
+            },
+            "authority": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "id",
+            "authority"
+          ],
+          "additionalProperties": false
+        },
+        "source_version": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          ],
+          "description": "Authority-assigned integer version or opaque ETag; not a timestamp or permission."
+        },
+        "observed_at": {
+          "$ref": "#/$defs/EpochMilliseconds"
+        },
+        "snapshot": {
+          "$ref": "#/$defs/DomainPayload"
+        },
+        "domain_schema_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "fact_kind": {
+          "enum": [
+            "authoritative_backend",
+            "user_statement",
+            "model_inference"
+          ]
+        },
+        "provenance": {
+          "type": "object",
+          "properties": {
+            "authority": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "request_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^\\S+$"
+            },
+            "tool_name": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256,
+                  "pattern": "^\\S+$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "tool_call_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256,
+                  "pattern": "^\\S+$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "query_ref": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256,
+                  "pattern": "^\\S+$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "authority",
+            "request_id",
+            "tool_name",
+            "tool_call_id",
+            "query_ref"
+          ],
+          "additionalProperties": false
+        },
+        "validity_policy": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "expires_at"
+                },
+                "expires_at": {
+                  "$ref": "#/$defs/EpochMilliseconds"
+                },
+                "policy_ref": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256,
+                  "pattern": "^\\S+$"
+                }
+              },
+              "required": [
+                "mode",
+                "expires_at",
+                "policy_ref"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "reread_before_commit"
+                },
+                "policy_ref": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256,
+                  "pattern": "^\\S+$"
+                }
+              },
+              "required": [
+                "mode",
+                "policy_ref"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "const": "immutable"
+                },
+                "attestation_ref": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256,
+                  "pattern": "^\\S+$"
+                },
+                "policy_ref": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256,
+                  "pattern": "^\\S+$"
+                }
+              },
+              "required": [
+                "mode",
+                "attestation_ref",
+                "policy_ref"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "content_hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "description": "Digest of the application-defined canonical execution content. Shape validation does not recompute or authenticate this hash."
+        }
+      },
+      "required": [
+        "schema_version",
+        "evidence_id",
+        "tenant_id",
+        "created_at",
+        "source_version",
+        "observed_at",
+        "snapshot",
+        "domain_schema_ref",
+        "fact_kind",
+        "provenance",
+        "validity_policy"
+      ],
+      "additionalProperties": false,
+      "description": "Read evidence or a explicitly classified user statement/inference. Provenance does not grant permissions; freshness, authority and tenant linkage must be verified by the service.",
+      "allOf": [
+        {
+          "oneOf": [
+            {
+              "required": [
+                "entity_ref"
+              ],
+              "not": {
+                "required": [
+                  "source_ref"
+                ]
+              }
+            },
+            {
+              "required": [
+                "source_ref"
+              ],
+              "not": {
+                "required": [
+                  "entity_ref"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "if": {
+            "properties": {
+              "fact_kind": {
+                "const": "authoritative_backend"
+              }
+            },
+            "required": [
+              "fact_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "provenance": {
+                "properties": {
+                  "authority": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "tool_name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256,
+                    "pattern": "^\\S+$"
+                  },
+                  "tool_call_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256,
+                    "pattern": "^\\S+$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "fact_kind": {
+                "const": "model_inference"
+              }
+            },
+            "required": [
+              "fact_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "provenance": {
+                "properties": {
+                  "authority": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Intent": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "intent_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "tenant_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "created_at": {
+          "$ref": "#/$defs/EpochMilliseconds"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "principal_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "enum": [
+                "message",
+                "ui_action",
+                "api_request"
+              ]
+            },
+            "reference_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^\\S+$"
+            },
+            "original_text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 10000
+            }
+          },
+          "required": [
+            "kind",
+            "reference_id",
+            "original_text"
+          ],
+          "additionalProperties": false
+        },
+        "requested_action": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EntityRef"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "constraints": {
+          "$ref": "#/$defs/DomainPayload"
+        },
+        "domain_schema_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "authorization_scope": {
+          "type": "object",
+          "properties": {
+            "stage": {
+              "enum": [
+                "understand",
+                "suggest",
+                "draft",
+                "commit"
+              ]
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256,
+                "pattern": "^\\S+$"
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            },
+            "target_refs": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/EntityRef"
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            },
+            "limits": {
+              "$ref": "#/$defs/DomainPayload"
+            },
+            "authority_ref": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "policy_version": {
+              "oneOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                }
+              ],
+              "description": "Authority-assigned integer version or opaque ETag; not a timestamp or permission."
+            }
+          },
+          "required": [
+            "stage",
+            "actions",
+            "target_refs",
+            "limits",
+            "authority_ref",
+            "policy_version"
+          ],
+          "additionalProperties": false
+        },
+        "status": {
+          "enum": [
+            "captured",
+            "needs_clarification",
+            "authorized",
+            "in_progress",
+            "fulfilled",
+            "cancelled"
+          ]
+        }
+      },
+      "required": [
+        "schema_version",
+        "intent_id",
+        "tenant_id",
+        "created_at",
+        "request_id",
+        "principal_id",
+        "source",
+        "requested_action",
+        "targets",
+        "constraints",
+        "domain_schema_ref",
+        "authorization_scope",
+        "status"
+      ],
+      "additionalProperties": false,
+      "description": "Original user source plus parsed intent. The host resolves authorization_scope; model confidence, a resource ID, or a valid shape cannot authorize a write."
+    },
+    "Proposal": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "proposal_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "tenant_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "created_at": {
+          "$ref": "#/$defs/EpochMilliseconds"
+        },
+        "intent_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "action_type": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EntityRef"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "expected_versions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "entity_ref": {
+                "$ref": "#/$defs/EntityRef"
+              },
+              "version": {
+                "oneOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  }
+                ],
+                "description": "Authority-assigned integer version or opaque ETag; not a timestamp or permission."
+              }
+            },
+            "required": [
+              "entity_ref",
+              "version"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "pattern": "^\\S+$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "changes": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "before_after"
+                },
+                "before": {
+                  "$ref": "#/$defs/DomainPayload"
+                },
+                "after": {
+                  "$ref": "#/$defs/DomainPayload"
+                }
+              },
+              "required": [
+                "kind",
+                "before",
+                "after"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "patch"
+                },
+                "patch_format": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256,
+                  "pattern": "^\\S+$"
+                },
+                "patch": {
+                  "$ref": "#/$defs/DomainPayload"
+                }
+              },
+              "required": [
+                "kind",
+                "patch_format",
+                "patch"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "execution_payload": {
+          "$ref": "#/$defs/DomainPayload"
+        },
+        "domain_schema_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "preconditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "enum": [
+                  "entity_version",
+                  "evidence",
+                  "policy",
+                  "domain"
+                ]
+              },
+              "reference_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256,
+                "pattern": "^\\S+$"
+              },
+              "rule_ref": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256,
+                "pattern": "^\\S+$"
+              }
+            },
+            "required": [
+              "kind",
+              "reference_id",
+              "rule_ref"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "proposal_hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "description": "Digest of the application-defined canonical execution content. Shape validation does not recompute or authenticate this hash."
+        },
+        "canonicalization_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "policy_version": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          ],
+          "description": "Authority-assigned integer version or opaque ETag; not a timestamp or permission."
+        },
+        "expires_at": {
+          "$ref": "#/$defs/EpochMilliseconds"
+        },
+        "status": {
+          "enum": [
+            "draft",
+            "pending_approval",
+            "approved",
+            "superseded",
+            "expired",
+            "discarded",
+            "applied"
+          ]
+        }
+      },
+      "required": [
+        "schema_version",
+        "proposal_id",
+        "tenant_id",
+        "created_at",
+        "intent_id",
+        "action_type",
+        "targets",
+        "expected_versions",
+        "evidence_ids",
+        "changes",
+        "execution_payload",
+        "domain_schema_ref",
+        "preconditions",
+        "proposal_hash",
+        "canonicalization_ref",
+        "policy_version",
+        "expires_at",
+        "status"
+      ],
+      "additionalProperties": false,
+      "description": "Immutable reviewable candidate. Hash policy must cover the normalized execution payload and relevant scope, versions, recipients, money and expiry. Hash recomputation, freshness and conditional writes are service responsibilities."
+    },
+    "Approval": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "approval_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "tenant_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "created_at": {
+          "$ref": "#/$defs/EpochMilliseconds"
+        },
+        "proposal_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "proposal_hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "description": "Digest of the application-defined canonical execution content. Shape validation does not recompute or authenticate this hash."
+        },
+        "approver_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "authority_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "decision": {
+          "enum": [
+            "approved",
+            "rejected",
+            "revoked"
+          ]
+        },
+        "decided_at": {
+          "$ref": "#/$defs/EpochMilliseconds"
+        },
+        "approved_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EpochMilliseconds"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expires_at": {
+          "$ref": "#/$defs/EpochMilliseconds"
+        },
+        "revoked_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EpochMilliseconds"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scope": {
+          "type": "object",
+          "properties": {
+            "action_types": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256,
+                "pattern": "^\\S+$"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "targets": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/EntityRef"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "executor_rule": {
+              "enum": [
+                "same_as_approver",
+                "authorized_operator",
+                "specified_principals"
+              ]
+            },
+            "executor_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256,
+                "pattern": "^\\S+$"
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            },
+            "policy_version": {
+              "oneOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                }
+              ],
+              "description": "Authority-assigned integer version or opaque ETag; not a timestamp or permission."
+            }
+          },
+          "required": [
+            "action_types",
+            "targets",
+            "executor_rule",
+            "executor_ids",
+            "policy_version"
+          ],
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "executor_rule": {
+                    "const": "specified_principals"
+                  }
+                },
+                "required": [
+                  "executor_rule"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "executor_ids": {
+                    "minItems": 1
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "required": [
+        "schema_version",
+        "approval_id",
+        "tenant_id",
+        "created_at",
+        "proposal_id",
+        "proposal_hash",
+        "approver_id",
+        "authority_ref",
+        "decision",
+        "decided_at",
+        "approved_at",
+        "expires_at",
+        "revoked_at",
+        "scope"
+      ],
+      "additionalProperties": false,
+      "description": "Host/approval-service decision bound to exact proposal hash. Authority, current permissions, revocation and time validity must be checked again at apply. A rejected/revoked record is not an execution permission.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "decision": {
+                "const": "approved"
+              }
+            },
+            "required": [
+              "decision"
+            ]
+          },
+          "then": {
+            "properties": {
+              "approved_at": {
+                "$ref": "#/$defs/EpochMilliseconds"
+              },
+              "revoked_at": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "decision": {
+                "const": "rejected"
+              }
+            },
+            "required": [
+              "decision"
+            ]
+          },
+          "then": {
+            "properties": {
+              "approved_at": {
+                "type": "null"
+              },
+              "revoked_at": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "decision": {
+                "const": "revoked"
+              }
+            },
+            "required": [
+              "decision"
+            ]
+          },
+          "then": {
+            "properties": {
+              "approved_at": {
+                "$ref": "#/$defs/EpochMilliseconds"
+              },
+              "revoked_at": {
+                "$ref": "#/$defs/EpochMilliseconds"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Operation": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "tenant_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "created_at": {
+          "$ref": "#/$defs/EpochMilliseconds"
+        },
+        "idempotency_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "payload_hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "description": "Digest of the application-defined canonical execution content. Shape validation does not recompute or authenticate this hash."
+        },
+        "intent_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "proposal_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^\\S+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "approval_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "pattern": "^\\S+$"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "state": {
+          "enum": [
+            "pending",
+            "running",
+            "succeeded",
+            "failed",
+            "unknown",
+            "cancel_requested"
+          ]
+        },
+        "attempts": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "deadline": {
+          "$ref": "#/$defs/EpochMilliseconds"
+        },
+        "backend_operation_ref": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "last_error": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256,
+                  "pattern": "^\\S+$"
+                },
+                "message": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                },
+                "retryable": {
+                  "type": "boolean"
+                },
+                "outcome_known": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "code",
+                "message",
+                "retryable",
+                "outcome_known"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "receipt_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^\\S+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "recovery": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "strategy": {
+                  "enum": [
+                    "query_backend",
+                    "retry_same_key",
+                    "manual_reconciliation"
+                  ]
+                },
+                "owner_ref": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256,
+                  "pattern": "^\\S+$"
+                },
+                "next_check_at": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/EpochMilliseconds"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "strategy",
+                "owner_ref",
+                "next_check_at"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "schema_version",
+        "operation_id",
+        "tenant_id",
+        "created_at",
+        "idempotency_key",
+        "payload_hash",
+        "intent_id",
+        "proposal_id",
+        "approval_ids",
+        "state",
+        "attempts",
+        "deadline",
+        "backend_operation_ref",
+        "last_error",
+        "receipt_id",
+        "recovery"
+      ],
+      "additionalProperties": false,
+      "description": "Durable logical operation, separate from network attempts. Service/database enforce tenant+key uniqueness, payload matching, authorization before replay, and legal transitions. unknown cannot carry a success receipt.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "succeeded"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "receipt_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256,
+                "pattern": "^\\S+$"
+              },
+              "attempts": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "last_error": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "unknown"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "receipt_id": {
+                "type": "null"
+              },
+              "attempts": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "recovery": {
+                "type": "object",
+                "properties": {
+                  "strategy": {
+                    "enum": [
+                      "query_backend",
+                      "retry_same_key",
+                      "manual_reconciliation"
+                    ]
+                  },
+                  "owner_ref": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256,
+                    "pattern": "^\\S+$"
+                  },
+                  "next_check_at": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/EpochMilliseconds"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "strategy",
+                  "owner_ref",
+                  "next_check_at"
+                ],
+                "additionalProperties": false
+              },
+              "last_error": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256,
+                    "pattern": "^\\S+$"
+                  },
+                  "message": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000
+                  },
+                  "retryable": {
+                    "type": "boolean"
+                  },
+                  "outcome_known": {
+                    "const": false
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "retryable",
+                  "outcome_known"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "failed"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attempts": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "last_error": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256,
+                    "pattern": "^\\S+$"
+                  },
+                  "message": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000
+                  },
+                  "retryable": {
+                    "type": "boolean"
+                  },
+                  "outcome_known": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "retryable",
+                  "outcome_known"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "backend_operation_ref": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "backend_operation_ref"
+            ]
+          },
+          "then": {
+            "properties": {
+              "recovery": {
+                "type": "object",
+                "properties": {
+                  "strategy": {
+                    "enum": [
+                      "query_backend",
+                      "retry_same_key",
+                      "manual_reconciliation"
+                    ]
+                  },
+                  "owner_ref": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256,
+                    "pattern": "^\\S+$"
+                  },
+                  "next_check_at": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/EpochMilliseconds"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "strategy",
+                  "owner_ref",
+                  "next_check_at"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Receipt": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "receipt_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "tenant_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "created_at": {
+          "$ref": "#/$defs/EpochMilliseconds"
+        },
+        "operation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "payload_hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "description": "Digest of the application-defined canonical execution content. Shape validation does not recompute or authenticate this hash."
+        },
+        "outcome": {
+          "enum": [
+            "succeeded",
+            "failed",
+            "compensated"
+          ]
+        },
+        "committed_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EpochMilliseconds"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "resulting_versions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "entity_ref": {
+                "$ref": "#/$defs/EntityRef"
+              },
+              "version": {
+                "oneOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  }
+                ],
+                "description": "Authority-assigned integer version or opaque ETag; not a timestamp or permission."
+              }
+            },
+            "required": [
+              "entity_ref",
+              "version"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "authority": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "result_ref": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "enum": [
+                "tool_call",
+                "user_message",
+                "ui_action",
+                "operation",
+                "document",
+                "extraction"
+              ]
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^\\S+$"
+            },
+            "authority": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "id",
+            "authority"
+          ],
+          "additionalProperties": false
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "compensates_receipt_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        }
+      },
+      "required": [
+        "schema_version",
+        "receipt_id",
+        "tenant_id",
+        "created_at",
+        "operation_id",
+        "payload_hash",
+        "outcome",
+        "committed_at",
+        "resulting_versions",
+        "authority",
+        "result_ref"
+      ],
+      "additionalProperties": false,
+      "description": "Authority-issued durable result. unknown is deliberately not a receipt outcome. Existence, issuance, linkage and atomicity cannot be established by schema. Compensation is a new operation/receipt preserving the original fact.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "succeeded"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "committed_at": {
+                "$ref": "#/$defs/EpochMilliseconds"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "failed"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "committed_at": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "compensated"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "required": [
+              "compensates_receipt_id"
+            ],
+            "properties": {
+              "committed_at": {
+                "$ref": "#/$defs/EpochMilliseconds"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "UIEvent": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "event_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "tenant_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "created_at": {
+          "$ref": "#/$defs/EpochMilliseconds"
+        },
+        "session_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "component_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "event_kind": {
+          "enum": [
+            "provisional",
+            "final",
+            "error",
+            "cancelled",
+            "unknown"
+          ]
+        },
+        "payload": {
+          "$ref": "#/$defs/DomainPayload"
+        },
+        "domain_schema_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "payload_validation": {
+          "enum": [
+            "partial",
+            "domain_validated"
+          ]
+        },
+        "business_status": {
+          "enum": [
+            "none",
+            "pending",
+            "committed",
+            "failed",
+            "unknown"
+          ]
+        },
+        "operation_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^\\S+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "receipt_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^\\S+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "resume_cursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        }
+      },
+      "required": [
+        "schema_version",
+        "event_id",
+        "tenant_id",
+        "created_at",
+        "session_id",
+        "run_id",
+        "sequence",
+        "component_id",
+        "revision",
+        "event_kind",
+        "payload",
+        "domain_schema_ref",
+        "payload_validation",
+        "business_status",
+        "operation_id",
+        "receipt_id",
+        "resume_cursor"
+      ],
+      "additionalProperties": false,
+      "description": "Suggested application envelope, NOT official AG-UI wire fields. A validated final render is not automatically a business commit. Reducer/host verify ordering, revision, trusted receipt and source of truth.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "provisional"
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload_validation": {
+                "const": "partial"
+              },
+              "receipt_id": {
+                "type": "null"
+              },
+              "business_status": {
+                "enum": [
+                  "none",
+                  "pending"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "final"
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload_validation": {
+                "const": "domain_validated"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_kind": {
+                "const": "unknown"
+              }
+            },
+            "required": [
+              "event_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "business_status": {
+                "const": "unknown"
+              },
+              "receipt_id": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "business_status": {
+                "const": "committed"
+              }
+            },
+            "required": [
+              "business_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "event_kind": {
+                "const": "final"
+              },
+              "payload_validation": {
+                "const": "domain_validated"
+              },
+              "operation_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256,
+                "pattern": "^\\S+$"
+              },
+              "receipt_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256,
+                "pattern": "^\\S+$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "business_status": {
+                "const": "unknown"
+              }
+            },
+            "required": [
+              "business_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "receipt_id": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "MemoryFact": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "memory_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "tenant_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "created_at": {
+          "$ref": "#/$defs/EpochMilliseconds"
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "subject_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "value": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            },
+            {
+              "$ref": "#/$defs/DomainPayload"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^\\S+$"
+        },
+        "source_ref": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "enum": [
+                "tool_call",
+                "user_message",
+                "ui_action",
+                "operation",
+                "document",
+                "extraction"
+              ]
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^\\S+$"
+            },
+            "authority": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "id",
+            "authority"
+          ],
+          "additionalProperties": false
+        },
+        "domain_schema_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "updated_at": {
+          "$ref": "#/$defs/EpochMilliseconds"
+        },
+        "expires_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EpochMilliseconds"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retention_policy": {
+          "type": "object",
+          "properties": {
+            "policy_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^\\S+$"
+            },
+            "retain_until": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/EpochMilliseconds"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "policy_id",
+            "retain_until"
+          ],
+          "additionalProperties": false
+        },
+        "purge_generation": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "write_origin": {
+          "enum": [
+            "extraction",
+            "human_edit",
+            "human_delete",
+            "purge"
+          ]
+        },
+        "tombstone": {
+          "type": "boolean"
+        },
+        "deleted_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EpochMilliseconds"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "schema_version",
+        "memory_id",
+        "tenant_id",
+        "created_at",
+        "key",
+        "subject_id",
+        "value",
+        "category",
+        "source_ref",
+        "domain_schema_ref",
+        "updated_at",
+        "expires_at",
+        "retention_policy",
+        "purge_generation",
+        "revision",
+        "expected_revision",
+        "write_origin",
+        "tombstone",
+        "deleted_at"
+      ],
+      "additionalProperties": false,
+      "description": "Subject/tenant-scoped memory with human edit revision and deletion tombstone. Atomic revision+purge-generation checks protect human corrections/deletes from in-flight extraction. Permissions, permitted categories, retention and tombstone lifetime are service policies.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "tombstone": {
+                "const": true
+              }
+            },
+            "required": [
+              "tombstone"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "null"
+              },
+              "deleted_at": {
+                "$ref": "#/$defs/EpochMilliseconds"
+              },
+              "write_origin": {
+                "enum": [
+                  "human_delete",
+                  "purge"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "tombstone": {
+                "const": false
+              }
+            },
+            "required": [
+              "tombstone"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000
+                  },
+                  {
+                    "$ref": "#/$defs/DomainPayload"
+                  }
+                ]
+              },
+              "deleted_at": {
+                "type": "null"
+              },
+              "write_origin": {
+                "enum": [
+                  "extraction",
+                  "human_edit"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

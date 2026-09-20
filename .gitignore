@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+.env
+.env.*
+examples/*/.agui/evidence/
+examples/*/.agui/STATE.json
+examples/*/.agui/HANDOFF.md

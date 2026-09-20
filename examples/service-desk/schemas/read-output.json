@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "ticket": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "tenant": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "tenant",
+        "id",
+        "priority",
+        "version"
+      ],
+      "additionalProperties": false
+    },
+    "evidence_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "expires_at": {
+      "type": "number",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "ticket",
+    "evidence_id",
+    "expires_at"
+  ],
+  "additionalProperties": false
+}

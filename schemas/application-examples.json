@@ -1,0 +1,1225 @@
+{
+  "schema_version": 1,
+  "protocol": "Suggested AGUI Harness application protocol; not official AG-UI",
+  "as_of_epoch_ms": 1789862410000,
+  "notes": [
+    "Normal proposal/operation digests are computed with the example-specific canonicalization documented in schemas/README.md. They demonstrate content linkage, not authority or production cryptographic attestation.",
+    "Each $defs member has a valid value and a structurally invalid value; semantic cases are structurally valid but require explicit host/service decisions.",
+    "DomainPayload is open by design; domain_schema_ref requires an additional application schema and semantic checks."
+  ],
+  "definitions": {
+    "EpochMilliseconds": {
+      "valid": 1789862400000,
+      "invalid": -1,
+      "invalid_reason": "Timestamp must be a nonnegative integer epoch millisecond value."
+    },
+    "MoneyMinorUnits": {
+      "valid": {
+        "amount_minor": 12345,
+        "currency": "USD",
+        "minor_unit_exponent": 2
+      },
+      "invalid": {
+        "amount_minor": 123.45,
+        "currency": "USD",
+        "minor_unit_exponent": 2
+      },
+      "invalid_reason": "amount_minor must be an integer, not a fractional float."
+    },
+    "DomainPayload": {
+      "valid": {
+        "ticket_id": "T-42",
+        "priority": 1
+      },
+      "invalid": [
+        "not",
+        "an",
+        "object"
+      ],
+      "invalid_reason": "The intentional extension point still requires an object; domain-specific constraints are separate."
+    },
+    "TrustedContext": {
+      "valid": {
+        "schema_version": 1,
+        "context_id": "ctx-11",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862400000,
+        "principal_id": "alice",
+        "request_id": "req-11",
+        "session_id": "sess-4",
+        "run_id": "run-11",
+        "authority_ref": "host-authz-service",
+        "authentication_ref": "auth-event-82",
+        "authenticated_at": 1789862399000,
+        "expires_at": 1789866000000,
+        "permissions": [
+          "ticket:read",
+          "ticket:propose",
+          "ticket:approve",
+          "ticket:apply"
+        ],
+        "policy_version": "authz-v3"
+      },
+      "invalid": {
+        "schema_version": 1,
+        "context_id": "ctx-11",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862400000,
+        "principal_id": "alice",
+        "request_id": "req-11",
+        "session_id": "sess-4",
+        "run_id": "run-11",
+        "authority_ref": "host-authz-service",
+        "authentication_ref": "auth-event-82",
+        "authenticated_at": 1789862399000,
+        "expires_at": 1789866000000,
+        "permissions": [
+          "ticket:read",
+          "ticket:propose",
+          "ticket:approve",
+          "ticket:apply"
+        ],
+        "policy_version": "authz-v3",
+        "unexpected_authority_claim": true
+      },
+      "invalid_reason": "Protocol objects are closed; an unrecognized field is rejected."
+    },
+    "EntityRef": {
+      "valid": {
+        "schema_version": 1,
+        "entity_id": "T-42",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862400000,
+        "entity_type": "service_ticket",
+        "version": 7,
+        "authority": "service-desk-db"
+      },
+      "invalid": {
+        "schema_version": 1,
+        "entity_id": "T-42",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862400000,
+        "entity_type": "service_ticket",
+        "version": 7,
+        "authority": "service-desk-db",
+        "unexpected_authority_claim": true
+      },
+      "invalid_reason": "Protocol objects are closed; an unrecognized field is rejected."
+    },
+    "Evidence": {
+      "valid": {
+        "schema_version": 1,
+        "evidence_id": "ev-11",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862401000,
+        "entity_ref": {
+          "schema_version": 1,
+          "entity_id": "T-42",
+          "tenant_id": "tenant-a",
+          "created_at": 1789862400000,
+          "entity_type": "service_ticket",
+          "version": 7,
+          "authority": "service-desk-db"
+        },
+        "source_version": 7,
+        "observed_at": 1789862401000,
+        "snapshot": {
+          "priority": 3,
+          "title": "VPN connection unavailable"
+        },
+        "domain_schema_ref": "urn:service-desk:ticket-snapshot:1",
+        "fact_kind": "authoritative_backend",
+        "provenance": {
+          "authority": "service-desk-db",
+          "request_id": "req-11",
+          "tool_name": "read_ticket",
+          "tool_call_id": "call-11",
+          "query_ref": null
+        },
+        "validity_policy": {
+          "mode": "expires_at",
+          "expires_at": 1789862461000,
+          "policy_ref": "ticket-read-ttl-60s"
+        }
+      },
+      "invalid": {
+        "schema_version": 1,
+        "evidence_id": "ev-11",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862401000,
+        "entity_ref": {
+          "schema_version": 1,
+          "entity_id": "T-42",
+          "tenant_id": "tenant-a",
+          "created_at": 1789862400000,
+          "entity_type": "service_ticket",
+          "version": 7,
+          "authority": "service-desk-db"
+        },
+        "source_version": 7,
+        "observed_at": 1789862401000,
+        "snapshot": {
+          "priority": 3,
+          "title": "VPN connection unavailable"
+        },
+        "domain_schema_ref": "urn:service-desk:ticket-snapshot:1",
+        "fact_kind": "authoritative_backend",
+        "provenance": {
+          "authority": "service-desk-db",
+          "request_id": "req-11",
+          "tool_name": "read_ticket",
+          "tool_call_id": "call-11",
+          "query_ref": null
+        },
+        "validity_policy": {
+          "mode": "expires_at",
+          "expires_at": 1789862461000,
+          "policy_ref": "ticket-read-ttl-60s"
+        },
+        "unexpected_authority_claim": true
+      },
+      "invalid_reason": "Protocol objects are closed; an unrecognized field is rejected."
+    },
+    "Intent": {
+      "valid": {
+        "schema_version": 1,
+        "intent_id": "intent-11",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862400000,
+        "request_id": "req-11",
+        "principal_id": "alice",
+        "source": {
+          "kind": "ui_action",
+          "reference_id": "action-11",
+          "original_text": "Raise ticket T-42 to priority 1 after reviewing the change."
+        },
+        "requested_action": "set_ticket_priority",
+        "targets": [
+          {
+            "schema_version": 1,
+            "entity_id": "T-42",
+            "tenant_id": "tenant-a",
+            "created_at": 1789862400000,
+            "entity_type": "service_ticket",
+            "version": 7,
+            "authority": "service-desk-db"
+          }
+        ],
+        "constraints": {
+          "priority": 1
+        },
+        "domain_schema_ref": "urn:service-desk:priority-intent:1",
+        "authorization_scope": {
+          "stage": "commit",
+          "actions": [
+            "set_ticket_priority"
+          ],
+          "target_refs": [
+            {
+              "schema_version": 1,
+              "entity_id": "T-42",
+              "tenant_id": "tenant-a",
+              "created_at": 1789862400000,
+              "entity_type": "service_ticket",
+              "version": 7,
+              "authority": "service-desk-db"
+            }
+          ],
+          "limits": {
+            "maximum_tickets": 1
+          },
+          "authority_ref": "host-authz-service",
+          "policy_version": "authz-v3"
+        },
+        "status": "authorized"
+      },
+      "invalid": {
+        "schema_version": 1,
+        "intent_id": "intent-11",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862400000,
+        "request_id": "req-11",
+        "principal_id": "alice",
+        "source": {
+          "kind": "ui_action",
+          "reference_id": "action-11",
+          "original_text": "Raise ticket T-42 to priority 1 after reviewing the change."
+        },
+        "requested_action": "set_ticket_priority",
+        "targets": [
+          {
+            "schema_version": 1,
+            "entity_id": "T-42",
+            "tenant_id": "tenant-a",
+            "created_at": 1789862400000,
+            "entity_type": "service_ticket",
+            "version": 7,
+            "authority": "service-desk-db"
+          }
+        ],
+        "constraints": {
+          "priority": 1
+        },
+        "domain_schema_ref": "urn:service-desk:priority-intent:1",
+        "authorization_scope": {
+          "stage": "commit",
+          "actions": [
+            "set_ticket_priority"
+          ],
+          "target_refs": [
+            {
+              "schema_version": 1,
+              "entity_id": "T-42",
+              "tenant_id": "tenant-a",
+              "created_at": 1789862400000,
+              "entity_type": "service_ticket",
+              "version": 7,
+              "authority": "service-desk-db"
+            }
+          ],
+          "limits": {
+            "maximum_tickets": 1
+          },
+          "authority_ref": "host-authz-service",
+          "policy_version": "authz-v3"
+        },
+        "status": "authorized",
+        "unexpected_authority_claim": true
+      },
+      "invalid_reason": "Protocol objects are closed; an unrecognized field is rejected."
+    },
+    "Proposal": {
+      "valid": {
+        "schema_version": 1,
+        "proposal_id": "proposal-11",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862402000,
+        "intent_id": "intent-11",
+        "action_type": "set_ticket_priority",
+        "targets": [
+          {
+            "schema_version": 1,
+            "entity_id": "T-42",
+            "tenant_id": "tenant-a",
+            "created_at": 1789862400000,
+            "entity_type": "service_ticket",
+            "version": 7,
+            "authority": "service-desk-db"
+          }
+        ],
+        "expected_versions": [
+          {
+            "entity_ref": {
+              "schema_version": 1,
+              "entity_id": "T-42",
+              "tenant_id": "tenant-a",
+              "created_at": 1789862400000,
+              "entity_type": "service_ticket",
+              "version": 7,
+              "authority": "service-desk-db"
+            },
+            "version": 7
+          }
+        ],
+        "evidence_ids": [
+          "ev-11"
+        ],
+        "changes": {
+          "kind": "before_after",
+          "before": {
+            "priority": 3
+          },
+          "after": {
+            "priority": 1
+          }
+        },
+        "execution_payload": {
+          "ticket_id": "T-42",
+          "expected_version": 7,
+          "priority": 1
+        },
+        "domain_schema_ref": "urn:service-desk:priority-proposal:1",
+        "preconditions": [
+          {
+            "kind": "evidence",
+            "reference_id": "ev-11",
+            "rule_ref": "fresh-at-commit"
+          },
+          {
+            "kind": "policy",
+            "reference_id": "ticket-policy-v4",
+            "rule_ref": "allowed-priority-change"
+          }
+        ],
+        "proposal_hash": "sha256:f4147f8ca2e7ba16226e3b4638057d63370c52aa26de1dd22bd043a5806bc09a",
+        "canonicalization_ref": "agui-example-json-sorted-v1",
+        "policy_version": "ticket-policy-v4",
+        "expires_at": 1789862460000,
+        "status": "approved"
+      },
+      "invalid": {
+        "schema_version": 1,
+        "proposal_id": "proposal-11",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862402000,
+        "intent_id": "intent-11",
+        "action_type": "set_ticket_priority",
+        "targets": [
+          {
+            "schema_version": 1,
+            "entity_id": "T-42",
+            "tenant_id": "tenant-a",
+            "created_at": 1789862400000,
+            "entity_type": "service_ticket",
+            "version": 7,
+            "authority": "service-desk-db"
+          }
+        ],
+        "expected_versions": [
+          {
+            "entity_ref": {
+              "schema_version": 1,
+              "entity_id": "T-42",
+              "tenant_id": "tenant-a",
+              "created_at": 1789862400000,
+              "entity_type": "service_ticket",
+              "version": 7,
+              "authority": "service-desk-db"
+            },
+            "version": 7
+          }
+        ],
+        "evidence_ids": [
+          "ev-11"
+        ],
+        "changes": {
+          "kind": "before_after",
+          "before": {
+            "priority": 3
+          },
+          "after": {
+            "priority": 1
+          }
+        },
+        "execution_payload": {
+          "ticket_id": "T-42",
+          "expected_version": 7,
+          "priority": 1
+        },
+        "domain_schema_ref": "urn:service-desk:priority-proposal:1",
+        "preconditions": [
+          {
+            "kind": "evidence",
+            "reference_id": "ev-11",
+            "rule_ref": "fresh-at-commit"
+          },
+          {
+            "kind": "policy",
+            "reference_id": "ticket-policy-v4",
+            "rule_ref": "allowed-priority-change"
+          }
+        ],
+        "proposal_hash": "sha256:f4147f8ca2e7ba16226e3b4638057d63370c52aa26de1dd22bd043a5806bc09a",
+        "canonicalization_ref": "agui-example-json-sorted-v1",
+        "policy_version": "ticket-policy-v4",
+        "expires_at": 1789862460000,
+        "status": "approved",
+        "unexpected_authority_claim": true
+      },
+      "invalid_reason": "Protocol objects are closed; an unrecognized field is rejected."
+    },
+    "Approval": {
+      "valid": {
+        "schema_version": 1,
+        "approval_id": "approval-11",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862403000,
+        "proposal_id": "proposal-11",
+        "proposal_hash": "sha256:f4147f8ca2e7ba16226e3b4638057d63370c52aa26de1dd22bd043a5806bc09a",
+        "approver_id": "alice",
+        "authority_ref": "host-approval-service",
+        "decision": "approved",
+        "decided_at": 1789862403000,
+        "approved_at": 1789862403000,
+        "expires_at": 1789862460000,
+        "revoked_at": null,
+        "scope": {
+          "action_types": [
+            "set_ticket_priority"
+          ],
+          "targets": [
+            {
+              "schema_version": 1,
+              "entity_id": "T-42",
+              "tenant_id": "tenant-a",
+              "created_at": 1789862400000,
+              "entity_type": "service_ticket",
+              "version": 7,
+              "authority": "service-desk-db"
+            }
+          ],
+          "executor_rule": "same_as_approver",
+          "executor_ids": [],
+          "policy_version": "authz-v3"
+        }
+      },
+      "invalid": {
+        "schema_version": 1,
+        "approval_id": "approval-11",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862403000,
+        "proposal_id": "proposal-11",
+        "proposal_hash": "sha256:f4147f8ca2e7ba16226e3b4638057d63370c52aa26de1dd22bd043a5806bc09a",
+        "approver_id": "alice",
+        "authority_ref": "host-approval-service",
+        "decision": "approved",
+        "decided_at": 1789862403000,
+        "approved_at": null,
+        "expires_at": 1789862460000,
+        "revoked_at": null,
+        "scope": {
+          "action_types": [
+            "set_ticket_priority"
+          ],
+          "targets": [
+            {
+              "schema_version": 1,
+              "entity_id": "T-42",
+              "tenant_id": "tenant-a",
+              "created_at": 1789862400000,
+              "entity_type": "service_ticket",
+              "version": 7,
+              "authority": "service-desk-db"
+            }
+          ],
+          "executor_rule": "same_as_approver",
+          "executor_ids": [],
+          "policy_version": "authz-v3"
+        }
+      },
+      "invalid_reason": "An approved decision requires an approved_at timestamp."
+    },
+    "Operation": {
+      "valid": {
+        "schema_version": 1,
+        "operation_id": "operation-11",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862404000,
+        "idempotency_key": "intent-11:apply:1",
+        "payload_hash": "sha256:d473e6cf27fc0e67342284ae8e7c067419cb53ee90e098ab6d88d2782951441e",
+        "intent_id": "intent-11",
+        "proposal_id": "proposal-11",
+        "approval_ids": [
+          "approval-11"
+        ],
+        "state": "succeeded",
+        "attempts": 1,
+        "deadline": 1789862459000,
+        "backend_operation_ref": "service-desk-op-311",
+        "last_error": null,
+        "receipt_id": "receipt-11",
+        "recovery": null
+      },
+      "invalid": {
+        "schema_version": 1,
+        "operation_id": "operation-11",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862404000,
+        "idempotency_key": "intent-11:apply:1",
+        "payload_hash": "sha256:d473e6cf27fc0e67342284ae8e7c067419cb53ee90e098ab6d88d2782951441e",
+        "intent_id": "intent-11",
+        "proposal_id": "proposal-11",
+        "approval_ids": [
+          "approval-11"
+        ],
+        "state": "unknown",
+        "attempts": 1,
+        "deadline": 1789862459000,
+        "backend_operation_ref": "service-desk-op-311",
+        "last_error": {
+          "code": "ACK_TIMEOUT",
+          "message": "Commit acknowledgement missing",
+          "retryable": true,
+          "outcome_known": false
+        },
+        "receipt_id": "receipt-11",
+        "recovery": {
+          "strategy": "query_backend",
+          "owner_ref": "service-desk-reconciler",
+          "next_check_at": 1789862415000
+        }
+      },
+      "invalid_reason": "unknown cannot carry the succeeded operation receipt_id."
+    },
+    "Receipt": {
+      "valid": {
+        "schema_version": 1,
+        "receipt_id": "receipt-11",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862405000,
+        "operation_id": "operation-11",
+        "payload_hash": "sha256:d473e6cf27fc0e67342284ae8e7c067419cb53ee90e098ab6d88d2782951441e",
+        "outcome": "succeeded",
+        "committed_at": 1789862405000,
+        "resulting_versions": [
+          {
+            "entity_ref": {
+              "schema_version": 1,
+              "entity_id": "T-42",
+              "tenant_id": "tenant-a",
+              "created_at": 1789862400000,
+              "entity_type": "service_ticket",
+              "version": 8,
+              "authority": "service-desk-db"
+            },
+            "version": 8
+          }
+        ],
+        "authority": "service-desk-db",
+        "result_ref": {
+          "kind": "operation",
+          "id": "service-desk-op-311",
+          "authority": "service-desk-db"
+        },
+        "summary": "Ticket T-42 priority changed from 3 to 1."
+      },
+      "invalid": {
+        "schema_version": 1,
+        "receipt_id": "receipt-11",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862405000,
+        "operation_id": "operation-11",
+        "payload_hash": "sha256:d473e6cf27fc0e67342284ae8e7c067419cb53ee90e098ab6d88d2782951441e",
+        "outcome": "unknown",
+        "committed_at": 1789862405000,
+        "resulting_versions": [
+          {
+            "entity_ref": {
+              "schema_version": 1,
+              "entity_id": "T-42",
+              "tenant_id": "tenant-a",
+              "created_at": 1789862400000,
+              "entity_type": "service_ticket",
+              "version": 8,
+              "authority": "service-desk-db"
+            },
+            "version": 8
+          }
+        ],
+        "authority": "service-desk-db",
+        "result_ref": {
+          "kind": "operation",
+          "id": "service-desk-op-311",
+          "authority": "service-desk-db"
+        },
+        "summary": "Ticket T-42 priority changed from 3 to 1."
+      },
+      "invalid_reason": "unknown is an operation state, not a completed receipt outcome."
+    },
+    "UIEvent": {
+      "valid": {
+        "schema_version": 1,
+        "event_id": "event-19",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862405100,
+        "session_id": "sess-4",
+        "run_id": "run-11",
+        "sequence": 19,
+        "component_id": "ticket-priority-card",
+        "revision": 3,
+        "event_kind": "final",
+        "payload": {
+          "ticket_id": "T-42",
+          "priority": 1,
+          "message": "Priority updated"
+        },
+        "domain_schema_ref": "urn:service-desk:priority-card:1",
+        "payload_validation": "domain_validated",
+        "business_status": "committed",
+        "operation_id": "operation-11",
+        "receipt_id": "receipt-11",
+        "resume_cursor": "run-11:19"
+      },
+      "invalid": {
+        "schema_version": 1,
+        "event_id": "event-19",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862405100,
+        "session_id": "sess-4",
+        "run_id": "run-11",
+        "sequence": 19,
+        "component_id": "ticket-priority-card",
+        "revision": 3,
+        "event_kind": "final",
+        "payload": {
+          "ticket_id": "T-42",
+          "priority": 1,
+          "message": "Priority updated"
+        },
+        "domain_schema_ref": "urn:service-desk:priority-card:1",
+        "payload_validation": "domain_validated",
+        "business_status": "committed",
+        "operation_id": "operation-11",
+        "receipt_id": null,
+        "resume_cursor": "run-11:19"
+      },
+      "invalid_reason": "A committed UI status requires an operation and receipt reference; existence still needs a service lookup."
+    },
+    "MemoryFact": {
+      "valid": {
+        "schema_version": 1,
+        "memory_id": "memory-2",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862400000,
+        "key": "notification_channel",
+        "subject_id": "alice",
+        "value": "in_app",
+        "category": "workflow_preference",
+        "source_ref": {
+          "kind": "ui_action",
+          "id": "memory-edit-17",
+          "authority": "host-preferences"
+        },
+        "domain_schema_ref": "urn:service-desk:workflow-preference:1",
+        "updated_at": 1789862401000,
+        "expires_at": 1792454400000,
+        "retention_policy": {
+          "policy_id": "preferences-30d",
+          "retain_until": 1792454400000
+        },
+        "purge_generation": 2,
+        "revision": 4,
+        "expected_revision": 3,
+        "write_origin": "human_edit",
+        "tombstone": false,
+        "deleted_at": null
+      },
+      "invalid": {
+        "schema_version": 1,
+        "memory_id": "memory-2",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862400000,
+        "key": "notification_channel",
+        "subject_id": "alice",
+        "value": "in_app",
+        "category": "workflow_preference",
+        "source_ref": {
+          "kind": "ui_action",
+          "id": "memory-edit-17",
+          "authority": "host-preferences"
+        },
+        "domain_schema_ref": "urn:service-desk:workflow-preference:1",
+        "updated_at": 1789862401000,
+        "expires_at": 1792454400000,
+        "retention_policy": {
+          "policy_id": "preferences-30d",
+          "retain_until": 1792454400000
+        },
+        "purge_generation": 2,
+        "revision": 4,
+        "expected_revision": 3,
+        "write_origin": "human_delete",
+        "tombstone": true,
+        "deleted_at": 1789862402000
+      },
+      "invalid_reason": "Deletion tombstone cannot retain the active value."
+    }
+  },
+  "semantic_cases": [
+    {
+      "definition": "TrustedContext",
+      "name": "expired_context",
+      "instance": {
+        "schema_version": 1,
+        "context_id": "ctx-11",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862400000,
+        "principal_id": "alice",
+        "request_id": "req-11",
+        "session_id": "sess-4",
+        "run_id": "run-11",
+        "authority_ref": "host-authz-service",
+        "authentication_ref": "auth-event-82",
+        "authenticated_at": 1789862399000,
+        "expires_at": 1789862409000,
+        "permissions": [
+          "ticket:read",
+          "ticket:propose",
+          "ticket:approve",
+          "ticket:apply"
+        ],
+        "policy_version": "authz-v3"
+      },
+      "schema_valid": true,
+      "expected_service_decision": "reject authentication context at as_of; schema does not know current time"
+    },
+    {
+      "definition": "EntityRef",
+      "name": "wrong_tenant_reference",
+      "instance": {
+        "schema_version": 1,
+        "entity_id": "T-42",
+        "tenant_id": "tenant-b",
+        "created_at": 1789862400000,
+        "entity_type": "service_ticket",
+        "version": 7,
+        "authority": "service-desk-db"
+      },
+      "schema_valid": true,
+      "expected_service_decision": "deny for trusted tenant-a context; schema cannot compare separate records"
+    },
+    {
+      "definition": "Evidence",
+      "name": "expired_evidence",
+      "instance": {
+        "schema_version": 1,
+        "evidence_id": "ev-11",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862401000,
+        "entity_ref": {
+          "schema_version": 1,
+          "entity_id": "T-42",
+          "tenant_id": "tenant-a",
+          "created_at": 1789862400000,
+          "entity_type": "service_ticket",
+          "version": 7,
+          "authority": "service-desk-db"
+        },
+        "source_version": 7,
+        "observed_at": 1789862401000,
+        "snapshot": {
+          "priority": 3,
+          "title": "VPN connection unavailable"
+        },
+        "domain_schema_ref": "urn:service-desk:ticket-snapshot:1",
+        "fact_kind": "authoritative_backend",
+        "provenance": {
+          "authority": "service-desk-db",
+          "request_id": "req-11",
+          "tool_name": "read_ticket",
+          "tool_call_id": "call-11",
+          "query_ref": null
+        },
+        "validity_policy": {
+          "mode": "expires_at",
+          "expires_at": 1789862409000,
+          "policy_ref": "ticket-read-ttl-60s"
+        }
+      },
+      "schema_valid": true,
+      "expected_service_decision": "re-read; do not compute a committable change from this expired snapshot"
+    },
+    {
+      "definition": "Intent",
+      "name": "draft_only",
+      "instance": {
+        "schema_version": 1,
+        "intent_id": "intent-11",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862400000,
+        "request_id": "req-11",
+        "principal_id": "alice",
+        "source": {
+          "kind": "ui_action",
+          "reference_id": "action-11",
+          "original_text": "Raise ticket T-42 to priority 1 after reviewing the change."
+        },
+        "requested_action": "set_ticket_priority",
+        "targets": [
+          {
+            "schema_version": 1,
+            "entity_id": "T-42",
+            "tenant_id": "tenant-a",
+            "created_at": 1789862400000,
+            "entity_type": "service_ticket",
+            "version": 7,
+            "authority": "service-desk-db"
+          }
+        ],
+        "constraints": {
+          "priority": 1
+        },
+        "domain_schema_ref": "urn:service-desk:priority-intent:1",
+        "authorization_scope": {
+          "stage": "draft",
+          "actions": [
+            "set_ticket_priority"
+          ],
+          "target_refs": [
+            {
+              "schema_version": 1,
+              "entity_id": "T-42",
+              "tenant_id": "tenant-a",
+              "created_at": 1789862400000,
+              "entity_type": "service_ticket",
+              "version": 7,
+              "authority": "service-desk-db"
+            }
+          ],
+          "limits": {
+            "maximum_tickets": 1
+          },
+          "authority_ref": "host-authz-service",
+          "policy_version": "authz-v3"
+        },
+        "status": "authorized"
+      },
+      "schema_valid": true,
+      "expected_service_decision": "allow draft work only; reject commit despite a schema-valid intent"
+    },
+    {
+      "definition": "Proposal",
+      "name": "expired_proposal",
+      "instance": {
+        "schema_version": 1,
+        "proposal_id": "proposal-11",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862402000,
+        "intent_id": "intent-11",
+        "action_type": "set_ticket_priority",
+        "targets": [
+          {
+            "schema_version": 1,
+            "entity_id": "T-42",
+            "tenant_id": "tenant-a",
+            "created_at": 1789862400000,
+            "entity_type": "service_ticket",
+            "version": 7,
+            "authority": "service-desk-db"
+          }
+        ],
+        "expected_versions": [
+          {
+            "entity_ref": {
+              "schema_version": 1,
+              "entity_id": "T-42",
+              "tenant_id": "tenant-a",
+              "created_at": 1789862400000,
+              "entity_type": "service_ticket",
+              "version": 7,
+              "authority": "service-desk-db"
+            },
+            "version": 7
+          }
+        ],
+        "evidence_ids": [
+          "ev-11"
+        ],
+        "changes": {
+          "kind": "before_after",
+          "before": {
+            "priority": 3
+          },
+          "after": {
+            "priority": 1
+          }
+        },
+        "execution_payload": {
+          "ticket_id": "T-42",
+          "expected_version": 7,
+          "priority": 1
+        },
+        "domain_schema_ref": "urn:service-desk:priority-proposal:1",
+        "preconditions": [
+          {
+            "kind": "evidence",
+            "reference_id": "ev-11",
+            "rule_ref": "fresh-at-commit"
+          },
+          {
+            "kind": "policy",
+            "reference_id": "ticket-policy-v4",
+            "rule_ref": "allowed-priority-change"
+          }
+        ],
+        "proposal_hash": "sha256:e3255ab283979128d2f5ba0c140fdbeded2d8be595764aa154f6a890893fdc02",
+        "canonicalization_ref": "agui-example-json-sorted-v1",
+        "policy_version": "ticket-policy-v4",
+        "expires_at": 1789862409000,
+        "status": "approved"
+      },
+      "schema_valid": true,
+      "expected_service_decision": "reject commit; a new preview/hash/approval is required"
+    },
+    {
+      "definition": "Approval",
+      "name": "expired_approval",
+      "instance": {
+        "schema_version": 1,
+        "approval_id": "approval-11",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862403000,
+        "proposal_id": "proposal-11",
+        "proposal_hash": "sha256:f4147f8ca2e7ba16226e3b4638057d63370c52aa26de1dd22bd043a5806bc09a",
+        "approver_id": "alice",
+        "authority_ref": "host-approval-service",
+        "decision": "approved",
+        "decided_at": 1789862403000,
+        "approved_at": 1789862403000,
+        "expires_at": 1789862409000,
+        "revoked_at": null,
+        "scope": {
+          "action_types": [
+            "set_ticket_priority"
+          ],
+          "targets": [
+            {
+              "schema_version": 1,
+              "entity_id": "T-42",
+              "tenant_id": "tenant-a",
+              "created_at": 1789862400000,
+              "entity_type": "service_ticket",
+              "version": 7,
+              "authority": "service-desk-db"
+            }
+          ],
+          "executor_rule": "same_as_approver",
+          "executor_ids": [],
+          "policy_version": "authz-v3"
+        }
+      },
+      "schema_valid": true,
+      "expected_service_decision": "reject execution despite decision=approved"
+    },
+    {
+      "definition": "Approval",
+      "name": "revoked_approval",
+      "instance": {
+        "schema_version": 1,
+        "approval_id": "approval-11",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862403000,
+        "proposal_id": "proposal-11",
+        "proposal_hash": "sha256:f4147f8ca2e7ba16226e3b4638057d63370c52aa26de1dd22bd043a5806bc09a",
+        "approver_id": "alice",
+        "authority_ref": "host-approval-service",
+        "decision": "revoked",
+        "decided_at": 1789862407000,
+        "approved_at": 1789862403000,
+        "expires_at": 1789862460000,
+        "revoked_at": 1789862407000,
+        "scope": {
+          "action_types": [
+            "set_ticket_priority"
+          ],
+          "targets": [
+            {
+              "schema_version": 1,
+              "entity_id": "T-42",
+              "tenant_id": "tenant-a",
+              "created_at": 1789862400000,
+              "entity_type": "service_ticket",
+              "version": 7,
+              "authority": "service-desk-db"
+            }
+          ],
+          "executor_rule": "same_as_approver",
+          "executor_ids": [],
+          "policy_version": "authz-v3"
+        }
+      },
+      "schema_valid": true,
+      "expected_service_decision": "reject execution/retry under revoked approval"
+    },
+    {
+      "definition": "Approval",
+      "name": "rejected_approval",
+      "instance": {
+        "schema_version": 1,
+        "approval_id": "approval-11",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862403000,
+        "proposal_id": "proposal-11",
+        "proposal_hash": "sha256:f4147f8ca2e7ba16226e3b4638057d63370c52aa26de1dd22bd043a5806bc09a",
+        "approver_id": "alice",
+        "authority_ref": "host-approval-service",
+        "decision": "rejected",
+        "decided_at": 1789862403000,
+        "approved_at": null,
+        "expires_at": 1789862460000,
+        "revoked_at": null,
+        "scope": {
+          "action_types": [
+            "set_ticket_priority"
+          ],
+          "targets": [
+            {
+              "schema_version": 1,
+              "entity_id": "T-42",
+              "tenant_id": "tenant-a",
+              "created_at": 1789862400000,
+              "entity_type": "service_ticket",
+              "version": 7,
+              "authority": "service-desk-db"
+            }
+          ],
+          "executor_rule": "same_as_approver",
+          "executor_ids": [],
+          "policy_version": "authz-v3"
+        }
+      },
+      "schema_valid": true,
+      "expected_service_decision": "record rejection; do not treat record validity as authorization"
+    },
+    {
+      "definition": "Operation",
+      "name": "outcome_unknown",
+      "instance": {
+        "schema_version": 1,
+        "operation_id": "operation-11",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862404000,
+        "idempotency_key": "intent-11:apply:1",
+        "payload_hash": "sha256:d473e6cf27fc0e67342284ae8e7c067419cb53ee90e098ab6d88d2782951441e",
+        "intent_id": "intent-11",
+        "proposal_id": "proposal-11",
+        "approval_ids": [
+          "approval-11"
+        ],
+        "state": "unknown",
+        "attempts": 1,
+        "deadline": 1789862459000,
+        "backend_operation_ref": null,
+        "last_error": {
+          "code": "ACK_TIMEOUT",
+          "message": "Commit acknowledgement missing",
+          "retryable": false,
+          "outcome_known": false
+        },
+        "receipt_id": null,
+        "recovery": {
+          "strategy": "manual_reconciliation",
+          "owner_ref": "service-desk-oncall",
+          "next_check_at": null
+        }
+      },
+      "schema_valid": true,
+      "expected_service_decision": "reconcile manually/query by persistent key; do not issue a success receipt or assume rollback"
+    },
+    {
+      "definition": "Receipt",
+      "name": "untrusted_receipt",
+      "instance": {
+        "schema_version": 1,
+        "receipt_id": "receipt-11",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862405000,
+        "operation_id": "operation-11",
+        "payload_hash": "sha256:d473e6cf27fc0e67342284ae8e7c067419cb53ee90e098ab6d88d2782951441e",
+        "outcome": "succeeded",
+        "committed_at": 1789862405000,
+        "resulting_versions": [
+          {
+            "entity_ref": {
+              "schema_version": 1,
+              "entity_id": "T-42",
+              "tenant_id": "tenant-a",
+              "created_at": 1789862400000,
+              "entity_type": "service_ticket",
+              "version": 8,
+              "authority": "service-desk-db"
+            },
+            "version": 8
+          }
+        ],
+        "authority": "service-desk-db",
+        "result_ref": {
+          "kind": "operation",
+          "id": "service-desk-op-311",
+          "authority": "service-desk-db"
+        },
+        "summary": "Ticket T-42 priority changed from 3 to 1."
+      },
+      "schema_valid": true,
+      "expected_service_decision": "if supplied by a model/browser, verify authority and lookup persisted operation; shape does not establish issuance"
+    },
+    {
+      "definition": "UIEvent",
+      "name": "partial_frame",
+      "instance": {
+        "schema_version": 1,
+        "event_id": "event-17",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862405100,
+        "session_id": "sess-4",
+        "run_id": "run-11",
+        "sequence": 17,
+        "component_id": "ticket-priority-card",
+        "revision": 1,
+        "event_kind": "provisional",
+        "payload": {
+          "fragment": "considering a priority change"
+        },
+        "domain_schema_ref": "urn:service-desk:priority-card:1",
+        "payload_validation": "partial",
+        "business_status": "pending",
+        "operation_id": "operation-11",
+        "receipt_id": null,
+        "resume_cursor": "run-11:17"
+      },
+      "schema_valid": true,
+      "expected_service_decision": "render provisionally; no approval/commit action from partial fields"
+    },
+    {
+      "definition": "UIEvent",
+      "name": "final_render_not_commit",
+      "instance": {
+        "schema_version": 1,
+        "event_id": "event-18",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862405100,
+        "session_id": "sess-4",
+        "run_id": "run-11",
+        "sequence": 18,
+        "component_id": "ticket-priority-card",
+        "revision": 2,
+        "event_kind": "final",
+        "payload": {
+          "preview": "priority 3 to 1"
+        },
+        "domain_schema_ref": "urn:service-desk:priority-card:1",
+        "payload_validation": "domain_validated",
+        "business_status": "pending",
+        "operation_id": "operation-11",
+        "receipt_id": null,
+        "resume_cursor": "run-11:18"
+      },
+      "schema_valid": true,
+      "expected_service_decision": "may render a validated preview; do not label the business operation committed"
+    },
+    {
+      "definition": "MemoryFact",
+      "name": "human_delete_tombstone",
+      "instance": {
+        "schema_version": 1,
+        "memory_id": "memory-2",
+        "tenant_id": "tenant-a",
+        "created_at": 1789862400000,
+        "key": "notification_channel",
+        "subject_id": "alice",
+        "value": null,
+        "category": "workflow_preference",
+        "source_ref": {
+          "kind": "ui_action",
+          "id": "memory-edit-17",
+          "authority": "host-preferences"
+        },
+        "domain_schema_ref": "urn:service-desk:workflow-preference:1",
+        "updated_at": 1789862408000,
+        "expires_at": 1792454400000,
+        "retention_policy": {
+          "policy_id": "preferences-30d",
+          "retain_until": 1792454400000
+        },
+        "purge_generation": 2,
+        "revision": 5,
+        "expected_revision": 4,
+        "write_origin": "human_delete",
+        "tombstone": true,
+        "deleted_at": 1789862408000
+      },
+      "schema_valid": true,
+      "expected_service_decision": "persist tombstone/revision; reject in-flight extraction based on revision 4 or older"
+    }
+  ]
+}
