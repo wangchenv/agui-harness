@@ -1,6 +1,6 @@
 {
   "name": "agui-harness",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "跨业务 Agent + 组件式 UI 应用的架构规范、开发 Skills 与证据门禁",
   "author": {
     "name": "Local developer"

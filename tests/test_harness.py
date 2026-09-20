@@ -56,6 +56,14 @@ if kind == 'model_eval':
                          'rework_delta':0.0,'cost_per_success':0.1}
     result['metrics'].update(data.get('live_metrics', {}))
 if kind == 'load': result['metrics'] = {'sample_size':10,'p95_latency_ms':10}
+if kind == 'model_eval':
+    import hashlib
+    trace = Path(os.environ['AGUI_ARTIFACT_DIR']) / 'synthetic-fixture.json'
+    trace.parent.mkdir(parents=True, exist_ok=True)
+    trace.write_text('{"fixture":true}')
+    result['artifacts'] = [{'path':str(trace.relative_to(Path.cwd())), 'sha256':hashlib.sha256(trace.read_bytes()).hexdigest()}]
+    if mode == 'missing_artifact': trace.unlink()
+    if mode == 'no_artifacts': result.pop('artifacts')
 output.write_text(json.dumps(result))
 '''
 
@@ -66,6 +74,25 @@ def write_json(path, value):
 
 
 class HarnessTests(unittest.TestCase):
+    def test_raw_artifact_tampering_invalidates_release(self):
+        root = self.base / 'application-artifacts'
+        contract = self.make_project(root, scope='application')
+        for check in contract['checks']: H.run_check(root, contract, check)
+        self.assertEqual(H.gate(root, contract, 'release')['status'], 'passed')
+        trace = root / '.agui/evidence/model_eval-artifacts/synthetic-fixture.json'
+        trace.write_text('tampered')
+        result = H.gate(root, contract, 'release')
+        self.assertEqual(result['status'], 'blocked')
+        self.assertTrue(any('Artifact digest mismatch' in error for error in result['errors']))
+
+    def test_missing_raw_artifact_rejected_at_run(self):
+        root = self.base / 'application-missing-artifacts'
+        contract = self.make_project(root, scope='application')
+        check = next(c for c in contract['checks'] if c['kind'] == 'model_eval')
+        for mode in ['missing_artifact', 'no_artifacts']:
+            write_json(root / 'src/test-data.json', {'mode': mode})
+            self.assertEqual(H.run_check(root, contract, check)['status'], 'failed')
+
     def test_cli_runs_from_target_with_parent_relative_plugin_path(self):
         # The documented cross-project invocation can leave .. segments in
         # __file__. Evidence engine hashing must canonicalize before relative_to.

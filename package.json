@@ -1,0 +1,8 @@
+{
+  "name": "agui-harness-checks",
+  "private": true,
+  "version": "0.2.0",
+  "engines": {"node": ">=20"},
+  "scripts": {"test:browser": "node scripts/browser_probe.cjs --suite examples/ui-workbench/browser.cjs"},
+  "devDependencies": {"playwright": "1.62.1"}
+}

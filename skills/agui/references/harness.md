@@ -115,4 +115,6 @@ ui使用browser；必须真实启动目标实现并验证DOM/键盘/断流等路
 
 运行凭证绑定合同哈希、source_files内容哈希、harness/schema实现哈希、命令、退出码与时间。gate重新读取result并检查cases、kind、模型版本和指标，原始result不能直接充当运行凭证。
 
+0.2 起，ui/model_eval 结果还必须包含非空 `artifacts`：每项为 `{path,sha256}`，path 是目标项目内相对路径，sha256 为文件摘要。run 与 gate 都重读文件并核对摘要，删除或篡改原始材料使证据失效。单个检查最多64个工件、总计100MiB。Harness通过 `AGUI_ARTIFACT_DIR` 提供检查专属输出目录；adapter可在其中创建本次运行的独立子目录。旧adapter必须迁移并重新运行，不能仅更新版本号沿用旧PASS。更多约定见 [评测接入](../../../docs/EVALUATION.md)。
+
 这能发现意外漏跑、陈旧结果和范围不一致，不能抵御能改写所有源码/证据的仓库管理员。需要更强保障时在可信CI保存不可变工件、限制写权限并审计运行身份。本工具不提供签名证明或远端部署认证。

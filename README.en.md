@@ -10,6 +10,8 @@ The toolkit includes Markdown specifications, **five Skills**, JSON Schemas, a l
 
 This README is available in English. The linked Skills, specifications, and example documentation are currently primarily in Simplified Chinese.
 
+**Version 0.2 adds executable components:** an opt-in [local SQLite execution module](docs/RUNTIME.md), [browser and structured-output model evaluation runners](docs/EVALUATION.md), and [CI with repository-protection auditing](docs/CI.md). Model providers remain project-owned; the toolkit cannot generate a real human baseline. Browser/model evidence now requires retained raw artifacts, so existing adapters must migrate and regenerate evidence.
+
 ## Where to start
 
 | Goal | Entry point |
@@ -25,6 +27,7 @@ This README is available in English. The linked Skills, specifications, and exam
 | Run gates and connect tests | [Harness contract and commands](skills/agui/references/harness.md) |
 | Explore other business domains | [Runnable service desk](examples/service-desk/README.md), [equipment-booking design](examples/equipment-booking-design/README.md), [domain mappings](examples/domain-mapping.md) |
 | Understand the research and design decisions | [Provenance](skills/agui/references/provenance.md) |
+| Review the implementation scope and acceptance criteria | [0.2 implementation plan](docs/IMPLEMENTATION-0.2.md) |
 
 ## How the harness guides development
 
@@ -81,6 +84,17 @@ The example's implementation gate should pass. Its release gate **must fail** be
 ```sh
 .venv/bin/python scripts/harness.py --project examples/service-desk gate --stage release
 ```
+
+Run the complete offline checks and automated browser positive/negative controls:
+
+```sh
+.venv/bin/python scripts/check_all.py
+npm ci --ignore-scripts
+npx --no-install playwright install chromium
+.venv/bin/python scripts/check_all.py --browser
+```
+
+Browser checks require Node 20+. Core Python unit tests do not require Playwright; the aggregate offline runner also uses Node for the existing UI state tests. CI uses Node 22 and Python 3.12.
 
 Initialize a contract for your own project:
 

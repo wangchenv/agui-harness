@@ -11,6 +11,8 @@ description: 验证 Agent 业务系统的可靠性、交互状态、真实模型
 
 按涉及的控制读 [故障矩阵](references/failure-matrix.md)，按模型/性能/人工效率需求读 [评测规范](references/evaluation.md)。不为与变更无关的模块重复做昂贵测量。
 
+需要实际 adapter 时读 [评测接口](../../docs/EVALUATION.md)：浏览器 runner 保存 trace/截图；模型 runner 当前只支持结构化精确匹配，离线示例明确跳过质量/效率。0.2 的 ui/model_eval 必须带可重新核对摘要的原始 artifacts。需要强制合并门禁时读 [CI 接入](../../docs/CI.md)，分别报告 workflow 运行结果与仓库保护状态，不用前者代替后者。
+
 ## 运行与判定
 
 1. 静态检查：源码身份边界、schema、工具副作用、工作流与组件一致；运行 lint。人工确认 source_paths 包含本次相关实现、测试、prompt、配置与依赖锁文件。

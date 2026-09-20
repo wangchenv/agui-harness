@@ -98,6 +98,8 @@ class UIDesignTests(unittest.TestCase):
         result={'schema_version':1,'cases':[{'id':'keyboard_navigation','status':'passed','detail':'fixture only'}]}
         self.assertTrue(harness.check_result(result,check))
         result['context']={'execution_mode':'browser'}
+        self.assertTrue(harness.check_result(result,check))
+        result['artifacts']=[{'path':'trace.zip','sha256':'a'*64}]
         self.assertEqual(harness.check_result(result,check),[])
 
 

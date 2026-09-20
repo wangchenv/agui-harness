@@ -29,4 +29,6 @@ description: 按领域契约实现 Agent 业务应用的受控工具、持久执
 
 参考 [SQLite 工单示例](../../examples/service-desk/README.md) 了解控制机制，不把其中测试开关或 trusted Actor 构造直接暴露为工具。
 
+新建单库应用可按 [Runtime 接入约束](../../docs/RUNTIME.md) 复用 `agui_runtime`，为每个领域实现 validate/apply 和当前授权函数，并把复制的模块纳入目标源码快照。外部 API 写入不能放入其 SQLite handler；跨系统流程仍按运行规范单独设计。不同人员审批不属于这个版本的默认 Actor 绑定能力。
+
 验收交给 [verify](../agui-verify/SKILL.md)。只有本地测试时准确报告范围，不宣称真实模型或生产效果已验证。

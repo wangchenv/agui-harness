@@ -27,7 +27,7 @@ except ImportError:
 PLUGIN = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PLUGIN / 'scripts'))
 import ui_audit
-VERSION = '0.1.1'
+VERSION = '0.2.0'
 CONTROL_NAMES = {
     'H01': '身份权限与租户隔离', 'H02': '业务操作幂等', 'H03': '提案版本与批准',
     'H04': '提交一致性与结果对账', 'H05': '会话并发与撤销', 'H06': 'UI 终态与业务凭证',
@@ -347,6 +347,8 @@ def snapshot(root, contract):
 def engine_hash():
     paths = [Path(__file__).resolve(), PLUGIN/'scripts/ui_audit.py', PLUGIN/'schemas/ui-tokens.schema.json',
              PLUGIN/'schemas/ui-inventory.schema.json', PLUGIN/'schemas/contract.schema.json', PLUGIN/'schemas/result.schema.json']
+    paths += [PLUGIN/'scripts/browser_probe.cjs', PLUGIN/'scripts/evaluate_model.py', PLUGIN/'package-lock.json']
+    paths += sorted((PLUGIN/'agui_runtime').glob('*.py')) + sorted((PLUGIN/'agui_eval').glob('*.py'))
     return sha({str(p.relative_to(PLUGIN)): sha(p.read_bytes()) for p in paths})
 
 
@@ -367,6 +369,30 @@ def check_result(result, check):
             errors.append(f'{check["kind"]} evidence requires context.execution_mode={required_mode}.')
         if check['kind'] == 'model_eval' and not all(context.get(k) for k in ['model_version','dataset_id','baseline_version']):
             errors.append('Live evaluation requires model_version, dataset_id and baseline_version.')
+        if check['kind'] in {'model_eval', 'ui'} and not result.get('artifacts'):
+            errors.append('Browser/live-model evidence requires retained raw artifacts.')
+    return errors
+
+
+def check_artifacts(root, result):
+    errors, paths, size = [], set(), 0
+    for item in (result or {}).get('artifacts', []):
+        try:
+            path = within(root, item['path'])
+            if path in paths:
+                errors.append('Duplicate artifact path: ' + item['path'])
+            paths.add(path)
+            if not path.is_file():
+                errors.append('Missing artifact: ' + item['path'])
+                continue
+            size += path.stat().st_size
+            if size > 100 * 1024 * 1024:
+                errors.append('Artifacts exceed 100 MiB per check.')
+                break
+            if sha(path.read_bytes()) != item['sha256']:
+                errors.append('Artifact digest mismatch: ' + item['path'])
+        except (HarnessError, OSError, KeyError, TypeError) as exc:
+            errors.append(f'Invalid artifact: {exc}')
     return errors
 
 
@@ -400,7 +426,9 @@ def _run_check(root, contract, check):
     exit_code = None
     with tempfile.TemporaryDirectory(prefix='agui-result-') as temp:
         output_path = Path(temp) / 'result.json'
-        env = dict(os.environ, AGUI_EVIDENCE_OUTPUT=str(output_path), AGUI_PROJECT_ROOT=str(root))
+        artifact_dir = safe_output(root, '.agui/evidence/' + check['id'] + '-artifacts')
+        env = dict(os.environ, AGUI_EVIDENCE_OUTPUT=str(output_path), AGUI_PROJECT_ROOT=str(root),
+                   AGUI_ARTIFACT_DIR=str(artifact_dir))
         log_path = safe_output(root, '.agui/evidence/' + check['id'] + '.log')
         with log_path.open('wb') as log:
             try:
@@ -423,6 +451,8 @@ def _run_check(root, contract, check):
             try:
                 result = read_json(output_path)
                 errors.extend(check_result(result, check))
+                if not validate_schema(result, 'result.schema.json'):
+                    errors.extend(check_artifacts(root, result))
             except HarnessError as exc:
                 errors.append(str(exc))
         else:
@@ -459,6 +489,8 @@ def inspect_evidence(root, contract, check, current):
         if not isinstance(finished, (int, float)) or not 0 <= time.time() - finished <= contract['release']['evidence_max_age_hours'] * 3600:
             errors.append('evidence expired or timestamp invalid')
         errors.extend(check_result(evidence.get('result'), check))
+        if not validate_schema(evidence.get('result'), 'result.schema.json'):
+            errors.extend(check_artifacts(root, evidence['result']))
         return evidence, errors
     except (HarnessError, TypeError, AttributeError) as exc:
         return None, [f'invalid evidence: {exc}']

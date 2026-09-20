@@ -49,6 +49,8 @@ description: 为 Agent 业务应用设计和实现用户界面，覆盖任务旅
 运行 [scripts/ui_audit.py](../../scripts/ui_audit.py) 的 `--tokens PATH --inventory PATH` 做静态检查；它只验证声明结构、选定颜色对、组件引用和动作状态，不证明实际浏览器行为。
 H06 的 `responsive_layout`、`keyboard_navigation`、`ui_state_recovery` 由 `kind=ui` 检查持有，结果需 `context.execution_mode=browser`；只能来自实际浏览器检查，不能给静态审计贴上 browser 标签。证据绑定和命令 inputs 遵循 [Harness 合约](../agui/references/harness.md)。
 
+可以复用 [Playwright runner](../../scripts/browser_probe.cjs)，并按 [接入说明](../../docs/EVALUATION.md) 为目标应用编写实际旅程断言。随包工单 suite 使用模拟数据，不能直接充当另一个应用的业务验收；真实截图、trace 和结果都应保留供复查。
+
 ## 必须保持的边界
 
 - **MUST〔H06〕** 建议、待执行、核实中与已生效明确区分；成功显示来自权威 receipt。流式结束、动画结束或模型说“完成”都不能证明业务已提交。

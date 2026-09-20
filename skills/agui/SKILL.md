@@ -23,6 +23,8 @@ description: 为跨业务的 Agent + 组件式 UI 应用组织设计、实现与
 
 CLI 语义、证据边界与案例 ID 见 [Harness 合约](references/harness.md)。需要知道过去教训来源时读 [来源与决策记录](references/provenance.md)。不要一次性加载所有参考文档。
 
+需要可复用代码时按范围选择：[单库执行模块](../../docs/RUNTIME.md)、[浏览器/模型评测接口](../../docs/EVALUATION.md)、[CI与仓库保护](../../docs/CI.md)。已有同等机制可复用；这些模块不自动安装到目标应用，也不代表目标应用已通过验证。
+
 ## 共同约束
 
 - 用户任务决定范围；选择一个可验证的完整旅程，不自动增加支付、发送、部署或多 Agent。

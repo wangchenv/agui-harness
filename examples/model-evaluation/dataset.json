@@ -1,0 +1,8 @@
+{
+  "dataset_id": "synthetic-booking-v1",
+  "scoring": "structured_exact_match",
+  "samples": [
+    {"id": "sample-1", "input": {"people": 6, "duration_minutes": 60}, "expected": {"people": 6, "duration_minutes": 60}},
+    {"id": "sample-2", "input": {"people": 2, "duration_minutes": 30}, "expected": {"people": 2, "duration_minutes": 30}}
+  ]
+}

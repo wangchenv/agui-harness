@@ -6,6 +6,8 @@
 
 **这是开发设计与验证工具，不是替代业务系统的 Agent 运行框架。** 能验证已声明的控制和测试证据，不能仅靠文档/门禁保证模型正确或生产效率。本包的 AGUI 指应用设计模式；[AG-UI](https://docs.ag-ui.com/introduction) 是可选事件传输协议，尚未附带官方兼容 adapter。
 
+**0.2 新增可执行模块**：[单个 SQLite 数据库内的受控执行](docs/RUNTIME.md)、[可复跑浏览器与结构化模型评测](docs/EVALUATION.md)、[实际 CI 和仓库保护核对](docs/CI.md)。模型接口仍需目标项目提供，真实人员基线不能由工具生成。浏览器和模型证据现在必须保留原始工件；迁移时重新生成证据。
+
 ## 先看什么
 
 | 目标 | 入口 |
@@ -21,6 +23,7 @@
 | 运行门禁、接入测试 | [Harness 合约与命令](skills/agui/references/harness.md) |
 | 看非电商例子 | [可运行工单控制](examples/service-desk/README.md)、[设备预约完整设计](examples/equipment-booking-design/README.md)、[其他领域映射](examples/domain-mapping.md) |
 | 了解哪些来自研究、哪些是新设计 | [来源与决策](skills/agui/references/provenance.md) |
+| 查看本轮具体实施与验收范围 | [0.2 实施计划](docs/IMPLEMENTATION-0.2.md) |
 
 ## 这套 harness 如何约束开发
 
@@ -71,6 +74,17 @@ python3 -m venv .venv
 ```
 
 示例的 implementation gate 应通过；`gate --stage release` **应失败**，因为它没有真实模型、负载、完整应用恢复或效率基线。
+
+完整离线回归与自动浏览器正/负控：
+
+```sh
+.venv/bin/python scripts/check_all.py
+npm ci --ignore-scripts
+npx --no-install playwright install chromium
+.venv/bin/python scripts/check_all.py --browser
+```
+
+浏览器检查需要 Node 20+；核心 Python 检查不需要 Playwright。`check_all.py` 的核心回归会用 Node 运行已有 UI 状态测试。CI 使用 Node 22 和 Python 3.12。
 
 对自己的目标仓库：
 
