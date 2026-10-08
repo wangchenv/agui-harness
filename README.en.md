@@ -2,11 +2,13 @@
 
 [简体中文](README.md) | **English**
 
-A development toolkit for building business applications that combine agents with component-based generative interfaces. It turns architectural principles into workflows that coding agents can follow, verify, and resume across sessions.
+An independent development and verification toolkit, available as a Codex plugin, for business applications that combine agents with component-based generative interfaces. It turns architectural principles into workflows that coding agents can follow, verify, and resume across sessions.
 
 The toolkit includes Markdown specifications, **five Skills**, JSON Schemas, a local evidence-gating CLI, and runnable service-desk and UI examples beyond e-commerce.
 
-**This is a design and verification toolkit, not an agent runtime that replaces your business system.** It checks declared controls and test evidence; documentation and gates alone cannot guarantee model correctness or production efficiency. Here, AGUI refers to the application design pattern. [AG-UI](https://docs.ag-ui.com/introduction) is an optional event transport protocol; this package does not yet include an official protocol-compatible adapter.
+**This is a design and verification toolkit, not an agent runtime that replaces your business system.** It checks declared controls and test evidence; documentation and gates alone cannot guarantee model correctness or production efficiency.
+
+**Relationship to official AG-UI:** This project is independently developed and is not affiliated with or endorsed by the [AG-UI protocol](https://docs.ag-ui.com/introduction) project or CopilotKit. It is not an official plugin or fork of either project. Here, AGUI describes the Agent + UI application pattern; the official AG-UI protocol standardizes events between agents and frontends. This toolkit can guide applications that adopt that protocol, but the current version does not integrate the AG-UI SDK, ship a protocol adapter, or claim certified compatibility.
 
 This README is available in English. The linked Skills, specifications, and example documentation are currently primarily in Simplified Chinese.
 
@@ -125,3 +127,9 @@ Transactions across external systems still depend on those systems' idempotency 
 Cloning the source does not install or enable the plugin. Use your host's plugin installation workflow, or have a coding agent read the entry Skill directly from the complete package. Merge the [AGENTS fragment](templates/AGENTS.fragment.md) into your project's existing instructions rather than replacing them.
 
 Installing this development tool does not itself authorize live-model calls, production operations, or application releases.
+
+## License and commercial use
+
+This project is licensed under the [MIT License](LICENSE). Commercial products, internal business systems, private deployments, modification, and redistribution are permitted without a license fee. Retain the copyright and permission notices in copies or substantial portions of the software. The license does not require you to disclose your own business source code. The software is provided as is, without warranty.
+
+This grant applies to this project; third-party dependencies, model services, and hosted services remain subject to their own licenses, terms, and charges. Official AG-UI / CopilotKit code and services have separate terms. This project's MIT license does not grant official affiliation or endorsement.
